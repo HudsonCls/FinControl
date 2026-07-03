@@ -3,7 +3,7 @@ import { requireAuth } from '../../middleware/auth';
 import { validate } from '../../middleware/validate';
 import { asyncHandler } from '../../lib/asyncHandler';
 import * as service from './auth.service';
-import { registerSchema, loginSchema } from './auth.schemas';
+import { registerSchema, loginSchema, updateMeSchema } from './auth.schemas';
 
 export const authRouter = Router();
 
@@ -30,6 +30,16 @@ authRouter.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const user = await service.getMe(req.userId!);
+    res.json({ data: { user } });
+  }),
+);
+
+authRouter.patch(
+  '/me',
+  requireAuth,
+  validate({ body: updateMeSchema }),
+  asyncHandler(async (req, res) => {
+    const user = await service.updateMe(req.userId!, req.body);
     res.json({ data: { user } });
   }),
 );

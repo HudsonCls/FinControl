@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -11,10 +11,12 @@ import {
   Bell,
   DollarSign,
   LogOut,
+  Smartphone,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from '@/context/AuthContext';
 import { useAlerts } from '@/lib/queries';
+import { ProfileModal } from '@/components/ProfileModal';
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -32,6 +34,7 @@ function Sidebar() {
   const { data: alerts } = useAlerts();
   const unread = alerts?.filter((a) => !a.read).length ?? 0;
   const initial = user?.name?.charAt(0).toUpperCase() ?? 'U';
+  const [profileOpen, setProfileOpen] = useState(false);
 
   return (
     <aside className="flex w-60 flex-shrink-0 flex-col border-r border-slate-200 bg-white">
@@ -73,16 +76,29 @@ function Sidebar() {
 
       <div className="border-t border-slate-100 p-3">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-sm font-medium text-white">
-            {initial}
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <div className="truncate text-xs font-medium text-slate-700">{user?.name}</div>
-            <div className="truncate text-[10px] text-slate-400">{user?.email}</div>
-          </div>
+          <button
+            onClick={() => setProfileOpen(true)}
+            className="flex flex-1 items-center gap-2.5 overflow-hidden rounded-lg p-1 text-left hover:bg-slate-50"
+            title="Editar perfil / WhatsApp"
+          >
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand text-sm font-medium text-white">
+              {initial}
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <div className="flex items-center gap-1 truncate text-xs font-medium text-slate-700">
+                {user?.name}
+                <Smartphone
+                  size={11}
+                  className={user?.phone ? 'text-brand' : 'text-slate-300'}
+                  aria-label={user?.phone ? 'WhatsApp vinculado' : 'WhatsApp não vinculado'}
+                />
+              </div>
+              <div className="truncate text-[10px] text-slate-400">{user?.email}</div>
+            </div>
+          </button>
           <button
             onClick={logout}
-            className="text-slate-400 hover:text-red-500"
+            className="flex-shrink-0 text-slate-400 hover:text-red-500"
             aria-label="Sair"
             title="Sair"
           >
@@ -90,6 +106,8 @@ function Sidebar() {
           </button>
         </div>
       </div>
+
+      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
     </aside>
   );
 }

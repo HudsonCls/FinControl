@@ -100,4 +100,58 @@ describe('Auth API', () => {
     const res = await request(app).get('/api/auth/me');
     expect(res.status).toBe(401);
   });
+
+  it('atualiza nome e telefone via PATCH /me, normalizando o telefone', async () => {
+    const { token } = await createTestUser();
+    const res = await request(app)
+      .patch('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Novo Nome', phone: '+55 (11) 99999-8888' });
+    expect(res.status).toBe(200);
+    expect(res.body.data.user.name).toBe('Novo Nome');
+    expect(res.body.data.user.phone).toBe('+5511999998888');
+  });
+
+  it('rejeita telefone em formato inválido', async () => {
+    const { token } = await createTestUser();
+    const res = await request(app)
+      .patch('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ phone: 'abc' });
+    expect(res.status).toBe(400);
+  });
+
+  it('impede vincular telefone já usado por outra conta', async () => {
+    await request(app).post('/api/auth/register').send({
+      email: 'dono@fincontrol.dev',
+      password: 'senha123',
+      name: 'Dono',
+      phone: '+5511988887777',
+    });
+    const { token } = await createTestUser('outro@fincontrol.dev');
+    const res = await request(app)
+      .patch('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ phone: '+5511988887777' });
+    expect(res.status).toBe(409);
+  });
+
+  it('permite desvincular o telefone enviando null', async () => {
+    const { token } = await createTestUser('comfone@fincontrol.dev');
+    await request(app)
+      .patch('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ phone: '+5511977776666' });
+    const res = await request(app)
+      .patch('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ phone: null });
+    expect(res.status).toBe(200);
+    expect(res.body.data.user.phone).toBeNull();
+  });
+
+  it('exige autenticação em PATCH /me', async () => {
+    const res = await request(app).patch('/api/auth/me').send({ name: 'X' });
+    expect(res.status).toBe(401);
+  });
 });

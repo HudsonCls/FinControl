@@ -1,9 +1,7 @@
 import { env, twilioEnabled, isTest } from '../../config/env';
+import { normalizePhone } from '../../lib/phone';
 
-/** Normaliza "whatsapp:+5561..." ou "+5561..." para "+5561...". */
-export function normalizePhone(raw: string): string {
-  return raw.replace(/^whatsapp:/i, '').replace(/\s+/g, '').trim();
-}
+export { normalizePhone };
 
 /**
  * Envia uma mensagem de WhatsApp via Twilio quando há credenciais.
