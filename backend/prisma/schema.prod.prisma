@@ -1,0 +1,138 @@
+// FinControl — schema do banco.
+// Dev: SQLite. Para produção, troque provider para "postgresql" e ajuste DATABASE_URL.
+// Valores monetários são armazenados em CENTAVOS (Int) para evitar erro de float.
+// Campos "type/source/role/channel" são String validados na camada de aplicação (zod),
+// pois SQLite não suporta enums nativos do Prisma — mantém o schema portável.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  phone     String?  @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts     Account[]
+  categories   Category[]
+  transactions Transaction[]
+  budgets      Budget[]
+  alerts       Alert[]
+  messages     ChatMessage[]
+}
+
+model Account {
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  type         String // CHECKING | SAVINGS | CREDIT_CARD | CASH
+  institution  String?
+  balanceCents Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+model Category {
+  id                String   @id @default(cuid())
+  userId            String
+  name              String
+  icon              String   @default("ti-tag")
+  color             String   @default("#6b7280")
+  type              String // EXPENSE | INCOME
+  monthlyLimitCents Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  budgets      Budget[]
+  alerts       Alert[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  userId      String
+  accountId   String?
+  categoryId  String?
+  description String
+  amountCents Int // sempre positivo; "type" indica a direção
+  type        String // EXPENSE | INCOME
+  date        DateTime @default(now())
+  source      String   @default("APP") // APP | WHATSAPP | IMPORT
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account  Account?  @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId, date])
+  @@index([userId, categoryId])
+}
+
+model Budget {
+  id         String   @id @default(cuid())
+  userId     String
+  categoryId String
+  month      String // "YYYY-MM"
+  limitCents Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId, month])
+  @@index([userId, month])
+}
+
+model Alert {
+  id         String   @id @default(cuid())
+  userId     String
+  categoryId String
+  month      String // "YYYY-MM"
+  threshold  Float // 0.8 = 80%
+  spentCents Int
+  limitCents Int
+  message    String
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+}
+
+model ChatMessage {
+  id            String   @id @default(cuid())
+  userId        String
+  role          String // USER | ASSISTANT
+  content       String
+  channel       String   @default("APP") // APP | WHATSAPP
+  transactionId String?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}

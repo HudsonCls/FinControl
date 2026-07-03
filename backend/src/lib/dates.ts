@@ -1,0 +1,22 @@
+/** Helpers de mês no formato "YYYY-MM" (sempre em UTC, determinístico). */
+
+export function currentMonth(d: Date = new Date()): string {
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
+/** Intervalo [start, end) do mês: do dia 1 ao dia 1 do mês seguinte. */
+export function monthRange(month: string): { start: Date; end: Date } {
+  const [year, mon] = month.split('-').map(Number);
+  const start = new Date(Date.UTC(year, mon - 1, 1));
+  const end = new Date(Date.UTC(year, mon, 1));
+  return { start, end };
+}
+
+export function isValidMonth(month: string): boolean {
+  return /^\d{4}-\d{2}$/.test(month);
+}
+
+/** "YYYY-MM-DD" em UTC, para séries diárias. */
+export function dayKey(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
