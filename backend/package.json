@@ -17,7 +17,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "schema:prod": "node scripts/gen-prod-schema.mjs",
-    "render:build": "node scripts/gen-prod-schema.mjs && prisma generate --schema=prisma/schema.prod.prisma && prisma db push --schema=prisma/schema.prod.prisma --skip-generate && tsc -p tsconfig.json",
+    "render:build": "node scripts/gen-prod-schema.mjs && prisma generate --schema=prisma/schema.prod.prisma && prisma db push --schema=prisma/schema.prod.prisma --skip-generate && tsc -p tsconfig.build.json",
     "render:seed": "node scripts/gen-prod-schema.mjs && tsx prisma/seed.ts"
   },
   "dependencies": {

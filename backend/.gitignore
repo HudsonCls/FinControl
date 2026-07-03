@@ -6,3 +6,5 @@ dist/
 prisma/*.db
 prisma/*.db-journal
 coverage/
+# gerado em build-time por scripts/gen-prod-schema.mjs — nunca commitar
+prisma/schema.prod.prisma
