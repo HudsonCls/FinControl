@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app';
+import { prisma } from '../src/lib/prisma';
 import { resetDb, createTestUser } from './helpers';
 
 const app = createApp();
@@ -153,5 +154,24 @@ describe('Auth API', () => {
   it('exige autenticação em PATCH /me', async () => {
     const res = await request(app).patch('/api/auth/me').send({ name: 'X' });
     expect(res.status).toBe(401);
+  });
+
+  it('cria categorias padrão automaticamente ao registrar (necessário para o chat/WhatsApp categorizar)', async () => {
+    const res = await request(app).post('/api/auth/register').send({
+      email: 'cats@fincontrol.dev',
+      password: 'senha123',
+      name: 'Com Categorias',
+    });
+    expect(res.status).toBe(201);
+
+    const categories = await prisma.category.findMany({
+      where: { userId: res.body.data.user.id },
+    });
+    const names = categories.map((c) => c.name).sort();
+    expect(names).toEqual(
+      ['Alimentação', 'Lazer', 'Moradia', 'Outros', 'Salário', 'Saúde', 'Transporte'].sort(),
+    );
+    expect(categories.find((c) => c.name === 'Outros')?.type).toBe('EXPENSE');
+    expect(categories.find((c) => c.name === 'Salário')?.type).toBe('INCOME');
   });
 });

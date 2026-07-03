@@ -35,6 +35,21 @@ function serialize(user: User): SerializedUser {
   };
 }
 
+/**
+ * Categorias padrão criadas para toda conta nova — sem elas o categorizador
+ * do chat/WhatsApp não tem para onde direcionar os gastos (inclusive "Outros",
+ * usado como fallback quando nenhuma categoria específica é identificada).
+ */
+const DEFAULT_CATEGORIES = [
+  { name: 'Alimentação', icon: 'ti-tools-kitchen-2', color: '#f59e0b', type: 'EXPENSE' },
+  { name: 'Transporte', icon: 'ti-car', color: '#3b82f6', type: 'EXPENSE' },
+  { name: 'Moradia', icon: 'ti-home', color: '#8b5cf6', type: 'EXPENSE' },
+  { name: 'Lazer', icon: 'ti-device-tv', color: '#ec4899', type: 'EXPENSE' },
+  { name: 'Saúde', icon: 'ti-heart', color: '#10b981', type: 'EXPENSE' },
+  { name: 'Outros', icon: 'ti-tag', color: '#6b7280', type: 'EXPENSE' },
+  { name: 'Salário', icon: 'ti-cash', color: '#16a34a', type: 'INCOME' },
+];
+
 export async function register(
   input: RegisterInput,
 ): Promise<{ user: SerializedUser; token: string }> {
@@ -49,7 +64,13 @@ export async function register(
 
   const password = await bcrypt.hash(input.password, 10);
   const user = await prisma.user.create({
-    data: { email: input.email, name: input.name, password, phone },
+    data: {
+      email: input.email,
+      name: input.name,
+      password,
+      phone,
+      categories: { create: DEFAULT_CATEGORIES },
+    },
   });
 
   return { user: serialize(user), token: signToken(user.id) };
