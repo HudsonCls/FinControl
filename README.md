@@ -2,7 +2,7 @@
 
 Sistema de controle financeiro pessoal inspirado no **Porquim**: dashboard completo na
 plataforma + registro de gastos por **chat estilo WhatsApp** com IA que entende linguagem
-natural ("gastei 42,90 no iFood"), categoriza, e responde consultas ("quanto gastei em
+natural, categoriza, e responde consultas ("quanto gastei em
 alimentação esse mês?").
 
 ## Estrutura
