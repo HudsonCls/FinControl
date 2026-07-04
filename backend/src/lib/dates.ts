@@ -16,6 +16,18 @@ export function isValidMonth(month: string): boolean {
   return /^\d{4}-\d{2}$/.test(month);
 }
 
+/**
+ * Dias restantes (incluindo hoje) até o fim do mês informado, contados a
+ * partir de `now`. Retorna 0 se `month` não for o mês corrente de `now`
+ * (não faz sentido calcular "ritmo de gasto" para um mês passado/futuro).
+ */
+export function daysRemainingInMonth(month: string, now: Date = new Date()): number {
+  if (month !== currentMonth(now)) return 0;
+  const { end } = monthRange(month);
+  const msPerDay = 86400000;
+  return Math.max(Math.ceil((end.getTime() - now.getTime()) / msPerDay), 0);
+}
+
 /** "YYYY-MM-DD" em UTC, para séries diárias. */
 export function dayKey(date: Date): string {
   return date.toISOString().slice(0, 10);

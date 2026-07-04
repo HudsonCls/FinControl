@@ -132,4 +132,85 @@ describe('Chat IA API', () => {
     expect(res.body.data[0].role).toBe('USER');
     expect(res.body.data[1].role).toBe('ASSISTANT');
   });
+
+  it('apaga o último lançamento com "apaga o último"', async () => {
+    await request(app)
+      .post('/api/chat/messages')
+      .set(auth(token))
+      .send({ content: 'gastei 42,90 no iFood' });
+
+    const res = await request(app)
+      .post('/api/chat/messages')
+      .set(auth(token))
+      .send({ content: 'apaga o último' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.reply).toContain('Apaguei');
+    expect(res.body.data.reply).toContain('42,90');
+
+    const txs = await prisma.transaction.findMany({ where: { userId } });
+    expect(txs).toHaveLength(0);
+  });
+
+  it('avisa quando não há lançamento para apagar', async () => {
+    const res = await request(app)
+      .post('/api/chat/messages')
+      .set(auth(token))
+      .send({ content: 'apaga o último' });
+    expect(res.status).toBe(201);
+    expect(res.body.data.reply).toContain('Não encontrei');
+  });
+
+  it('corrige o valor do último lançamento com "corrige pra X"', async () => {
+    await request(app)
+      .post('/api/chat/messages')
+      .set(auth(token))
+      .send({ content: 'gastei 42,90 no iFood' });
+
+    const res = await request(app)
+      .post('/api/chat/messages')
+      .set(auth(token))
+      .send({ content: 'corrige pra 35,50' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.transaction.amount).toBe(35.5);
+    expect(res.body.data.reply).toContain('35,50');
+    expect(res.body.data.reply).toContain('42,90');
+
+    const txs = await prisma.transaction.findMany({ where: { userId } });
+    expect(txs).toHaveLength(1);
+    expect(txs[0].amountCents).toBe(3550);
+  });
+
+  it('responde ao ritmo de gasto ("quanto ainda posso gastar")', async () => {
+    await prisma.transaction.createMany({
+      data: [
+        { userId, description: 'Salário', amountCents: 500000, type: 'INCOME' },
+        { userId, description: 'Aluguel', amountCents: 100000, type: 'EXPENSE' },
+      ],
+    });
+
+    const res = await request(app)
+      .post('/api/chat/messages')
+      .set(auth(token))
+      .send({ content: 'quanto ainda posso gastar essa semana?' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.reply).toContain('saldo livre');
+    expect(res.body.data.reply).toMatch(/dia/);
+  });
+
+  it('avisa quando o saldo do ritmo de gasto já está negativo', async () => {
+    await prisma.transaction.create({
+      data: { userId, description: 'Aluguel', amountCents: 100000, type: 'EXPENSE' },
+    });
+
+    const res = await request(app)
+      .post('/api/chat/messages')
+      .set(auth(token))
+      .send({ content: 'ritmo de gasto' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.reply).toContain('Não sobrou margem');
+  });
 });

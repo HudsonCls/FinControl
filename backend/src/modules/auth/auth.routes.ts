@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../../middleware/auth';
 import { validate } from '../../middleware/validate';
+import { loginRateLimiter } from '../../middleware/rateLimit';
 import { asyncHandler } from '../../lib/asyncHandler';
 import * as service from './auth.service';
 import { registerSchema, loginSchema, updateMeSchema } from './auth.schemas';
@@ -18,6 +19,7 @@ authRouter.post(
 
 authRouter.post(
   '/login',
+  loginRateLimiter,
   validate({ body: loginSchema }),
   asyncHandler(async (req, res) => {
     const data = await service.login(req.body);

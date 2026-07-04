@@ -216,6 +216,41 @@ describe('Reports API', () => {
     expect(res.body.data[0].total).toBe(200.4);
   });
 
+  it('exige autenticação no export', async () => {
+    const res = await request(app).get('/api/reports/export');
+    expect(res.status).toBe(401);
+  });
+
+  it('exporta as transações do mês em CSV', async () => {
+    const res = await request(app)
+      .get(`/api/reports/export?month=${MONTH}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('text/csv');
+    expect(res.headers['content-disposition']).toContain('attachment');
+    expect(res.headers['content-disposition']).toContain(`fincontrol-transacoes-${MONTH}.csv`);
+
+    const text = res.text as string;
+    const lines = text.replace(/^\uFEFF/, '').split('\r\n');
+    expect(lines[0]).toBe('Data,Descrição,Categoria,Tipo,Origem,Valor');
+    // Cabeçalho + 4 transações de março (2 Alimentação + 1 Transporte + 1 Salário).
+    expect(lines).toHaveLength(5);
+    expect(text).toContain('iFood almoço');
+    expect(text).toContain('49,90');
+    expect(text).toContain('Salário mensal');
+    expect(text).toContain('Receita');
+  });
+
+  it('export respeita filtro de categoria', async () => {
+    const res = await request(app)
+      .get(`/api/reports/export?category=Transporte&month=${MONTH}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    const lines = (res.text as string).replace(/^\uFEFF/, '').split('\r\n');
+    expect(lines).toHaveLength(2); // cabeçalho + 1 transação
+    expect(res.text).toContain('Uber centro');
+  });
+
   it('não vaza transações de outro usuário (posse)', async () => {
     const other = await createTestUser('outro@fincontrol.dev');
     const otherCat = await createCategoryFor(other.user.id, {

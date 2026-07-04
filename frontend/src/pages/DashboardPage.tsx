@@ -20,7 +20,7 @@ import { Layout } from '@/components/Layout';
 import { MonthSelector } from '@/components/MonthSelector';
 import { Card, Spinner, Badge, Button } from '@/components/ui';
 import { categoryIcon } from '@/lib/icons';
-import { formatBRL, formatDate, currentMonth } from '@/lib/format';
+import { formatBRL, formatDate, currentMonth, daysRemainingInThisMonth } from '@/lib/format';
 import { useSummary, useBudgets, useTransactions, useAlerts } from '@/lib/queries';
 
 function Kpi({
@@ -61,6 +61,15 @@ export default function DashboardPage() {
   const unreadAlert = alerts.data?.find((a) => !a.read);
   const chartData =
     s?.daily.map((d) => ({ day: d.date.slice(8, 10), expense: d.expense })) ?? [];
+
+  // Ritmo de gasto só faz sentido para o mês corrente.
+  const isCurrentMonth = month === currentMonth();
+  const paceHint =
+    isCurrentMonth && s
+      ? s.balance <= 0
+        ? 'sem margem esse mês'
+        : `≈ ${formatBRL(s.balance / daysRemainingInThisMonth())}/dia até o fim do mês`
+      : undefined;
 
   return (
     <Layout
@@ -105,6 +114,7 @@ export default function DashboardPage() {
               value={formatBRL(s?.balance ?? 0)}
               icon={<Wallet size={14} />}
               color="#2563eb"
+              hint={paceHint}
             />
             <Kpi
               label="Via WhatsApp"

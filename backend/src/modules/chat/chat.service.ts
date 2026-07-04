@@ -1,7 +1,7 @@
 import type { Transaction, Category, Account, ChatMessage } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 import { centsToReais, reaisToCents, formatBRL } from '../../lib/money';
-import { currentMonth } from '../../lib/dates';
+import { currentMonth, daysRemainingInMonth } from '../../lib/dates';
 import { parse } from './parser';
 import { findCategory, categorizeExpense } from './categorizer';
 import {
@@ -143,6 +143,75 @@ export async function processMessage(
       reply =
         `Limite de ${formatBRL(parsed.amountCents)} definido para ${category.name} ` +
         `em ${monthLabel(month)}.`;
+      break;
+    }
+
+    case 'DELETE_LAST': {
+      const last = await prisma.transaction.findFirst({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        include: { category: true },
+      });
+      if (!last) {
+        reply = 'Não encontrei nenhum lançamento para apagar.';
+        break;
+      }
+      await prisma.transaction.delete({ where: { id: last.id } });
+      reply =
+        `Apaguei: ${last.description} — ${formatBRL(last.amountCents)}` +
+        `${last.category ? ` em ${last.category.name}` : ''}.`;
+      break;
+    }
+
+    case 'EDIT_LAST_AMOUNT': {
+      if (!parsed.amountCents) {
+        reply = 'Me diga o novo valor. Ex: "corrige pra 35,50".';
+        break;
+      }
+      const last = await prisma.transaction.findFirst({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        include: { category: true, account: true },
+      });
+      if (!last) {
+        reply = 'Não encontrei nenhum lançamento recente para corrigir.';
+        break;
+      }
+      const oldAmount = formatBRL(last.amountCents);
+      const updated = await prisma.transaction.update({
+        where: { id: last.id },
+        data: { amountCents: parsed.amountCents },
+        include: { category: true, account: true },
+      });
+      transactionId = updated.id;
+      transaction = serializeTx(updated);
+      reply =
+        `Corrigido! ${updated.description} agora é ${formatBRL(parsed.amountCents)} ` +
+        `(era ${oldAmount}).`;
+
+      if (updated.type === 'EXPENSE' && updated.categoryId) {
+        const newAlerts = await evaluateAlerts(userId, currentMonth());
+        const mine = newAlerts.find((a) => a.categoryId === updated.categoryId);
+        if (mine) reply += ` ⚠ ${mine.message}.`;
+      }
+      break;
+    }
+
+    case 'PACE_QUERY': {
+      const month = currentMonth();
+      const s = await getMonthlySummary(userId, month);
+      const days = Math.max(daysRemainingInMonth(month), 1);
+      if (s.balance <= 0) {
+        reply =
+          `Seu saldo livre em ${monthLabel(month)} já está em ${formatBRL(reaisToCents(s.balance))}. ` +
+          'Não sobrou margem para gastar sem estourar o orçamento do mês.';
+      } else {
+        const dailyPace = s.balance / days;
+        reply =
+          `Você ainda tem ${formatBRL(reaisToCents(s.balance))} de saldo livre em ${monthLabel(month)}, ` +
+          `com ${days} dia(s) restante(s). Isso dá cerca de ${formatBRL(reaisToCents(dailyPace))}/dia ` +
+          `(≈ ${formatBRL(reaisToCents(dailyPace * 7))}/semana) sem estourar o mês.`;
+      }
       break;
     }
 

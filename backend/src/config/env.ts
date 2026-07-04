@@ -21,6 +21,9 @@ const schema = z.object({
   CORS_ORIGIN: z.string().default('*'),
   // Usado só pelo Prisma CLI (migrations/db push) com Supabase. Não é lido pela app.
   DIRECT_URL: z.string().optional().default(''),
+  // Proteção de força bruta em /api/auth/login. Padrão: 10 tentativas / 15min por IP.
+  LOGIN_RATE_LIMIT_MAX: z.coerce.number().default(10),
+  LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().default(15 * 60 * 1000),
 });
 
 const parsed = schema.safeParse(process.env);

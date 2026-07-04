@@ -18,6 +18,10 @@ import { whatsappRouter } from './modules/whatsapp/whatsapp.routes';
 export function createApp(): Application {
   const app = express();
 
+  // Confia no primeiro proxy (Render) para que req.ip reflita o IP real do
+  // cliente — necessário para o rate limiter funcionar por usuário, não globalmente.
+  app.set('trust proxy', 1);
+
   app.use(helmet());
   // CORS_ORIGIN pode ser "*" (padrão) ou uma lista separada por vírgula com as origens permitidas.
   app.use(

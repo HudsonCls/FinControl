@@ -30,6 +30,14 @@ export function monthLabel(month: string): string {
   });
 }
 
+/** Dias restantes (incluindo hoje) até o fim do mês corrente (hora local). */
+export function daysRemainingInThisMonth(): number {
+  const now = new Date();
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const msPerDay = 86400000;
+  return Math.max(Math.ceil((end.getTime() - now.getTime()) / msPerDay), 1);
+}
+
 /** Lista os últimos N meses (incluindo o atual) como ["YYYY-MM", ...]. */
 export function recentMonths(count = 6): string[] {
   const out: string[] = [];

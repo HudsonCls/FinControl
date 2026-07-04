@@ -257,3 +257,29 @@ export async function getMonthlySummary(
     daily,
   };
 }
+
+/** Escapa um campo para CSV (envolve em aspas se tiver vírgula, aspas ou quebra de linha). */
+function csvEscape(value: string): string {
+  if (/[",\n]/.test(value)) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
+/**
+ * Monta um CSV (com BOM UTF-8, para abrir corretamente no Excel) a partir de
+ * transações já serializadas. Valor em formato brasileiro (vírgula decimal).
+ */
+export function buildTransactionsCsv(transactions: SerializedTransaction[]): string {
+  const header = ['Data', 'Descrição', 'Categoria', 'Tipo', 'Origem', 'Valor'];
+  const rows = transactions.map((t) => [
+    new Date(t.date).toISOString().slice(0, 10),
+    t.description,
+    t.category?.name ?? '',
+    t.type === 'INCOME' ? 'Receita' : 'Despesa',
+    t.source,
+    t.amount.toFixed(2).replace('.', ','),
+  ]);
+  const lines = [header, ...rows].map((row) => row.map((v) => csvEscape(String(v))).join(','));
+  return '\uFEFF' + lines.join('\r\n');
+}

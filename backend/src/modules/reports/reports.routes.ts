@@ -48,6 +48,29 @@ reportsRouter.get(
 );
 
 reportsRouter.get(
+  '/export',
+  validate({ query: searchQuery }),
+  asyncHandler(async (req, res) => {
+    const { category, q, from, to, type, month, source } = req.query as SearchQuery;
+    const result = await service.searchTransactions(req.userId!, {
+      categoryId: category,
+      categoryName: category,
+      q,
+      from,
+      to,
+      type,
+      month,
+      source,
+    });
+    const csv = service.buildTransactionsCsv(result.transactions);
+    const filename = `fincontrol-transacoes${month ? `-${month}` : ''}.csv`;
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(csv);
+  }),
+);
+
+reportsRouter.get(
   '/by-category',
   validate({ query: byCategoryQuery }),
   asyncHandler(async (req, res) => {

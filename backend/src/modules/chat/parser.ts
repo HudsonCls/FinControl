@@ -3,7 +3,15 @@
  * Determinístico — funciona sem IA. A IA (quando há chave) só refina a categorização.
  */
 
-export type Intent = 'ADD_EXPENSE' | 'ADD_INCOME' | 'QUERY_SPENT' | 'SET_LIMIT' | 'UNKNOWN';
+export type Intent =
+  | 'ADD_EXPENSE'
+  | 'ADD_INCOME'
+  | 'QUERY_SPENT'
+  | 'SET_LIMIT'
+  | 'DELETE_LAST'
+  | 'EDIT_LAST_AMOUNT'
+  | 'PACE_QUERY'
+  | 'UNKNOWN';
 
 export interface ParsedMessage {
   intent: Intent;
@@ -49,6 +57,18 @@ export function parseAmountCents(text: string): number | null {
 
 function detectIntent(text: string, hasAmount: boolean): Intent {
   const t = normalizeText(text);
+
+  // Desfazer/corrigir o último lançamento têm prioridade sobre os demais padrões
+  // (evita colisão com "quanto"/"gast" de QUERY_SPENT ou com hasAmount de ADD_EXPENSE).
+  const refersToLast = /\b(ultimo|ultima|isso|essa|esse)\b/.test(t) || !/\d/.test(t);
+  if (/\b(apaga|apagar|desfaz|desfazer|cancela|cancelar|remove|remover)\b/.test(t) && refersToLast) {
+    return 'DELETE_LAST';
+  }
+  if (/\b(corrig|na verdade|na real)/.test(t) && hasAmount) return 'EDIT_LAST_AMOUNT';
+
+  if (/quanto (ainda )?(posso|da pra|consigo) gastar|ritmo de gasto|quanto (ainda )?sobra/.test(t)) {
+    return 'PACE_QUERY';
+  }
 
   if (/\bquanto\b/.test(t) && /gast/.test(t)) return 'QUERY_SPENT';
   if (/(limite|orcamento)/.test(t) && hasAmount) return 'SET_LIMIT';

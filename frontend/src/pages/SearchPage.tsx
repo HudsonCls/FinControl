@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import { Search as SearchIcon } from 'lucide-react';
+import { Search as SearchIcon, Download } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { MonthSelector } from '@/components/MonthSelector';
-import { Card, Input, Spinner, Badge } from '@/components/ui';
+import { Card, Input, Spinner, Badge, Button } from '@/components/ui';
 import { categoryIcon } from '@/lib/icons';
 import { formatBRL, formatDate, currentMonth } from '@/lib/format';
 import { useCategories, useSearch } from '@/lib/queries';
+import { api } from '@/lib/api';
 
 export default function SearchPage() {
   const [category, setCategory] = useState<string>('');
   const [q, setQ] = useState('');
   const [month, setMonth] = useState(currentMonth());
+  const [exporting, setExporting] = useState(false);
   const categories = useCategories();
 
   const params = {
@@ -20,6 +22,24 @@ export default function SearchPage() {
   };
   const search = useSearch(params);
   const result = search.data;
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const res = await api.get('/reports/export', { params, responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fincontrol-transacoes-${month}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <Layout
@@ -80,6 +100,13 @@ export default function SearchPage() {
                     {formatBRL(result?.total ?? 0)}
                   </div>
                 </div>
+                <Button
+                  onClick={handleExport}
+                  loading={exporting}
+                  disabled={!result?.count}
+                >
+                  <Download size={15} /> Exportar CSV
+                </Button>
               </div>
 
               <div className="divide-y divide-slate-100">
