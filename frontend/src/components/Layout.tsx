@@ -12,6 +12,8 @@ import {
   DollarSign,
   LogOut,
   Smartphone,
+  Menu,
+  X,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from '@/context/AuthContext';
@@ -29,7 +31,7 @@ const NAV = [
   { to: '/alertas', label: 'Alertas', icon: Bell },
 ];
 
-function Sidebar() {
+function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; onCloseMobile: () => void }) {
   const { user, logout } = useAuth();
   const { data: alerts } = useAlerts();
   const unread = alerts?.filter((a) => !a.read).length ?? 0;
@@ -37,23 +39,36 @@ function Sidebar() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   return (
-    <aside className="flex w-60 flex-shrink-0 flex-col border-r border-slate-200 bg-white">
+    <aside
+      className={clsx(
+        'fixed inset-y-0 left-0 z-40 flex w-60 flex-shrink-0 flex-col border-r border-slate-200 bg-white transition-transform duration-200 ease-in-out md:static md:z-auto md:translate-x-0',
+        mobileOpen ? 'translate-x-0' : '-translate-x-full',
+      )}
+    >
       <div className="flex items-center gap-2.5 px-4 py-5">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-white">
           <DollarSign size={18} />
         </div>
-        <div>
+        <div className="flex-1">
           <div className="text-sm font-semibold text-slate-800">FinControl</div>
           <div className="text-[11px] text-slate-400">hub financeiro</div>
         </div>
+        <button
+          onClick={onCloseMobile}
+          className="text-slate-400 hover:text-slate-600 md:hidden"
+          aria-label="Fechar menu"
+        >
+          <X size={20} />
+        </button>
       </div>
 
-      <nav className="flex-1 space-y-0.5 px-2 py-2">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-2">
         {NAV.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
+            onClick={onCloseMobile}
             className={({ isActive }) =>
               clsx(
                 'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',
@@ -121,15 +136,33 @@ export function Layout({
   actions?: ReactNode;
   children: ReactNode;
 }) {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
-      <Sidebar />
+      {mobileNavOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={() => setMobileNavOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      <Sidebar mobileOpen={mobileNavOpen} onCloseMobile={() => setMobileNavOpen(false)} />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3.5">
-          <h1 className="text-lg font-semibold text-slate-800">{title}</h1>
-          <div className="flex items-center gap-2">{actions}</div>
+        <header className="flex flex-col gap-2 border-b border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-3.5">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMobileNavOpen(true)}
+              className="text-slate-500 hover:text-slate-800 md:hidden"
+              aria-label="Abrir menu"
+            >
+              <Menu size={22} />
+            </button>
+            <h1 className="truncate text-lg font-semibold text-slate-800">{title}</h1>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">{actions}</div>
         </header>
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );
