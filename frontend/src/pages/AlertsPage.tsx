@@ -17,18 +17,20 @@ export default function AlertsPage() {
           {alerts.data.map((a) => (
             <Card
               key={a.id}
-              className={`flex items-center gap-3 p-4 ${a.read ? 'opacity-60' : 'border-amber-200 bg-amber-50'}`}
+              className={`flex items-center gap-3 p-4 ${a.read ? 'opacity-60' : 'border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30'}`}
             >
               <div
                 className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
-                  a.read ? 'bg-slate-100 text-slate-400' : 'bg-amber-100 text-amber-600'
+                  a.read
+                    ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
+                    : 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400'
                 }`}
               >
                 <AlertTriangle size={17} />
               </div>
               <div className="flex-1">
-                <div className="text-sm text-slate-700">{a.message}</div>
-                <div className="mt-0.5 text-[11px] text-slate-400">
+                <div className="text-sm text-slate-700 dark:text-slate-200">{a.message}</div>
+                <div className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
                   {formatBRL(a.spentCents / 100)} de {formatBRL(a.limitCents / 100)} ·{' '}
                   <span className="capitalize">{monthLabel(a.month)}</span> · {formatDate(a.createdAt)}
                 </div>

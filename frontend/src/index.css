@@ -6,6 +6,10 @@
   color-scheme: light;
 }
 
+:root.dark {
+  color-scheme: dark;
+}
+
 html,
 body,
 #root {
@@ -18,6 +22,12 @@ body {
   background: #f8fafc;
   color: #0f172a;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dark body {
+  background: #0f172a;
+  color: #e2e8f0;
 }
 
 * {
@@ -32,4 +42,7 @@ body {
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
 }

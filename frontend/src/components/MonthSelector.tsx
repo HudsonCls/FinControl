@@ -11,7 +11,7 @@ export function MonthSelector({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm capitalize text-slate-700 outline-none focus:border-brand"
+      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm capitalize text-slate-700 outline-none focus:border-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
     >
       {recentMonths(12).map((m) => (
         <option key={m} value={m} className="capitalize">

@@ -19,6 +19,7 @@ import clsx from 'clsx';
 import { useAuth } from '@/context/AuthContext';
 import { useAlerts } from '@/lib/queries';
 import { ProfileModal } from '@/components/ProfileModal';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -41,7 +42,7 @@ function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; onCloseMo
   return (
     <aside
       className={clsx(
-        'fixed inset-y-0 left-0 z-40 flex w-60 flex-shrink-0 flex-col border-r border-slate-200 bg-white transition-transform duration-200 ease-in-out md:static md:z-auto md:translate-x-0',
+        'fixed inset-y-0 left-0 z-40 flex w-60 flex-shrink-0 flex-col border-r border-slate-200 bg-white transition-transform duration-200 ease-in-out dark:border-slate-800 dark:bg-slate-900 md:static md:z-auto md:translate-x-0',
         mobileOpen ? 'translate-x-0' : '-translate-x-full',
       )}
     >
@@ -50,12 +51,12 @@ function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; onCloseMo
           <DollarSign size={18} />
         </div>
         <div className="flex-1">
-          <div className="text-sm font-semibold text-slate-800">FinControl</div>
-          <div className="text-[11px] text-slate-400">hub financeiro</div>
+          <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">FinControl</div>
+          <div className="text-[11px] text-slate-400 dark:text-slate-500">hub financeiro</div>
         </div>
         <button
           onClick={onCloseMobile}
-          className="text-slate-400 hover:text-slate-600 md:hidden"
+          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 md:hidden"
           aria-label="Fechar menu"
         >
           <X size={20} />
@@ -73,8 +74,8 @@ function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; onCloseMo
               clsx(
                 'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',
                 isActive
-                  ? 'bg-brand-50 font-medium text-brand'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
+                  ? 'bg-brand-50 font-medium text-brand dark:bg-brand/10'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100',
               )
             }
           >
@@ -89,31 +90,31 @@ function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; onCloseMo
         ))}
       </nav>
 
-      <div className="border-t border-slate-100 p-3">
+      <div className="border-t border-slate-100 p-3 dark:border-slate-800">
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setProfileOpen(true)}
-            className="flex flex-1 items-center gap-2.5 overflow-hidden rounded-lg p-1 text-left hover:bg-slate-50"
+            className="flex flex-1 items-center gap-2.5 overflow-hidden rounded-lg p-1 text-left hover:bg-slate-50 dark:hover:bg-slate-800"
             title="Editar perfil / WhatsApp"
           >
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand text-sm font-medium text-white">
               {initial}
             </div>
             <div className="flex-1 overflow-hidden">
-              <div className="flex items-center gap-1 truncate text-xs font-medium text-slate-700">
+              <div className="flex items-center gap-1 truncate text-xs font-medium text-slate-700 dark:text-slate-200">
                 {user?.name}
                 <Smartphone
                   size={11}
-                  className={user?.phone ? 'text-brand' : 'text-slate-300'}
+                  className={user?.phone ? 'text-brand' : 'text-slate-300 dark:text-slate-600'}
                   aria-label={user?.phone ? 'WhatsApp vinculado' : 'WhatsApp não vinculado'}
                 />
               </div>
-              <div className="truncate text-[10px] text-slate-400">{user?.email}</div>
+              <div className="truncate text-[10px] text-slate-400 dark:text-slate-500">{user?.email}</div>
             </div>
           </button>
           <button
             onClick={logout}
-            className="flex-shrink-0 text-slate-400 hover:text-red-500"
+            className="flex-shrink-0 text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400"
             aria-label="Sair"
             title="Sair"
           >
@@ -139,7 +140,7 @@ export function Layout({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
       {mobileNavOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/40 md:hidden"
@@ -149,18 +150,21 @@ export function Layout({
       )}
       <Sidebar mobileOpen={mobileNavOpen} onCloseMobile={() => setMobileNavOpen(false)} />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex flex-col gap-2 border-b border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-3.5">
+        <header className="flex flex-col gap-2 border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-3.5">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setMobileNavOpen(true)}
-              className="text-slate-500 hover:text-slate-800 md:hidden"
+              className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 md:hidden"
               aria-label="Abrir menu"
             >
               <Menu size={22} />
             </button>
-            <h1 className="truncate text-lg font-semibold text-slate-800">{title}</h1>
+            <h1 className="truncate text-lg font-semibold text-slate-800 dark:text-slate-100">{title}</h1>
           </div>
-          <div className="flex flex-wrap items-center gap-2">{actions}</div>
+          <div className="flex flex-wrap items-center gap-2">
+            {actions}
+            <ThemeToggle />
+          </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>

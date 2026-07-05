@@ -42,7 +42,7 @@ export function ProfileModal({ open, onClose }: { open: boolean; onClose: () => 
             placeholder="+5511999999999"
           />
         </Field>
-        <div className="flex items-start gap-2 rounded-lg bg-brand-50 p-2.5 text-xs text-emerald-900">
+        <div className="flex items-start gap-2 rounded-lg bg-brand-50 p-2.5 text-xs text-emerald-900 dark:bg-brand/10 dark:text-emerald-300">
           <MessageCircle size={14} className="mt-0.5 flex-shrink-0" />
           <span>
             Cadastre seu número com código do país (ex: <code>+5511999999999</code>) para

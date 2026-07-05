@@ -54,7 +54,7 @@ function NewAccountModal({ open, onClose }: { open: boolean; onClose: () => void
             <select
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value })}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             >
               {Object.entries(TYPE_LABEL).map(([v, l]) => (
                 <option key={v} value={v}>
@@ -78,7 +78,7 @@ function NewAccountModal({ open, onClose }: { open: boolean; onClose: () => void
             onChange={(e) => setForm({ ...form, institution: e.target.value })}
           />
         </Field>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         <div className="flex justify-end gap-2 pt-1">
           <Button type="button" onClick={onClose}>
             Cancelar
@@ -115,28 +115,34 @@ export default function AccountsPage() {
             return (
               <Card key={a.id} className="p-4">
                 <div className="flex items-start justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand/10">
                     <Icon size={18} className="text-brand" />
                   </div>
                   <button
                     onClick={() => del.mutate(a.id)}
-                    className="text-slate-300 hover:text-red-500"
+                    className="text-slate-300 hover:text-red-500 dark:text-slate-600 dark:hover:text-red-400"
                     aria-label="Excluir"
                   >
                     <Trash2 size={15} />
                   </button>
                 </div>
-                <div className="mt-3 text-sm font-medium text-slate-700">{a.name}</div>
-                <div className="text-[11px] text-slate-400">
+                <div className="mt-3 text-sm font-medium text-slate-700 dark:text-slate-200">
+                  {a.name}
+                </div>
+                <div className="text-[11px] text-slate-400 dark:text-slate-500">
                   {TYPE_LABEL[a.type]}
                   {a.institution ? ` · ${a.institution}` : ''}
                 </div>
-                <div className="mt-2 text-lg font-semibold text-slate-800">{formatBRL(a.balance)}</div>
+                <div className="mt-2 text-lg font-semibold text-slate-800 dark:text-slate-100">
+                  {formatBRL(a.balance)}
+                </div>
               </Card>
             );
           })}
           {!accounts.data?.length && (
-            <p className="text-sm text-slate-400">Nenhuma conta cadastrada ainda.</p>
+            <p className="text-sm text-slate-400 dark:text-slate-600">
+              Nenhuma conta cadastrada ainda.
+            </p>
           )}
         </div>
       )}

@@ -62,7 +62,9 @@ export default function BudgetsPage() {
                   >
                     <Icon size={16} style={{ color: c.color }} />
                   </div>
-                  <span className="flex-1 text-sm font-medium text-slate-700">{c.name}</span>
+                  <span className="flex-1 text-sm font-medium text-slate-700 dark:text-slate-200">
+                    {c.name}
+                  </span>
                   {limit > 0 && (
                     <span className="text-xs font-medium" style={{ color: barColor }}>
                       {pct}%
@@ -72,27 +74,27 @@ export default function BudgetsPage() {
 
                 {limit > 0 && (
                   <>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                    <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                       <div
                         className="h-full rounded-full"
                         style={{ width: `${Math.min(pct, 100)}%`, background: barColor }}
                       />
                     </div>
-                    <div className="mt-1 text-[11px] text-slate-400">
+                    <div className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
                       {formatBRL(spent)} de {formatBRL(limit)}
                     </div>
                   </>
                 )}
 
                 <div className="mt-3 flex items-center gap-2">
-                  <div className="flex flex-1 items-center gap-1 rounded-lg border border-slate-200 px-2">
-                    <span className="text-xs text-slate-400">R$</span>
+                  <div className="flex flex-1 items-center gap-1 rounded-lg border border-slate-200 px-2 dark:border-slate-700">
+                    <span className="text-xs text-slate-400 dark:text-slate-500">R$</span>
                     <input
                       value={editing ? edits[c.id] : limit || ''}
                       onChange={(e) => setEdits((s) => ({ ...s, [c.id]: e.target.value }))}
                       placeholder="definir limite"
                       inputMode="decimal"
-                      className="w-full py-1.5 text-sm outline-none"
+                      className="w-full bg-transparent py-1.5 text-sm text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
                     />
                   </div>
                   <Button
@@ -108,7 +110,7 @@ export default function BudgetsPage() {
             );
           })}
           {!expenseCats.length && (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-400 dark:text-slate-600">
               Crie categorias de despesa primeiro para definir orçamentos.
             </p>
           )}

@@ -22,6 +22,7 @@ import { Card, Spinner, Badge, Button } from '@/components/ui';
 import { categoryIcon } from '@/lib/icons';
 import { formatBRL, formatDate, currentMonth, daysRemainingInThisMonth } from '@/lib/format';
 import { useSummary, useBudgets, useTransactions, useAlerts } from '@/lib/queries';
+import { useTheme } from '@/context/ThemeContext';
 
 function Kpi({
   label,
@@ -38,19 +39,21 @@ function Kpi({
 }) {
   return (
     <Card className="p-4">
-      <div className="mb-1.5 flex items-center gap-1.5 text-xs text-slate-500">
+      <div className="mb-1.5 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
         <span style={{ color }}>{icon}</span>
         {label}
       </div>
       <div className="text-2xl font-semibold" style={{ color }}>
         {value}
       </div>
-      {hint && <div className="mt-0.5 text-[11px] text-slate-400">{hint}</div>}
+      {hint && <div className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">{hint}</div>}
     </Card>
   );
 }
 
 export default function DashboardPage() {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [month, setMonth] = useState(currentMonth());
   const summary = useSummary(month);
   const budgets = useBudgets(month);
@@ -90,7 +93,7 @@ export default function DashboardPage() {
       ) : (
         <div className="space-y-4">
           {unreadAlert && (
-            <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+            <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
               <AlertTriangle size={16} />
               {unreadAlert.message}
             </div>
@@ -127,24 +130,34 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
             <Card className="p-4 lg:col-span-2">
-              <div className="mb-3 text-sm font-medium text-slate-700">Gastos diários</div>
+              <div className="mb-3 text-sm font-medium text-slate-700 dark:text-slate-200">
+                Gastos diários
+              </div>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
                   <XAxis
                     dataKey="day"
-                    tick={{ fontSize: 10, fill: '#94a3b8' }}
+                    tick={{ fontSize: 10, fill: isDark ? '#64748b' : '#94a3b8' }}
                     axisLine={false}
                     tickLine={false}
                     interval={2}
                   />
                   <Tooltip
-                    cursor={{ fill: '#f1f5f9' }}
+                    cursor={{ fill: isDark ? '#1e293b' : '#f1f5f9' }}
                     formatter={(v: number) => [formatBRL(v), 'Gasto']}
                     labelFormatter={(l) => `Dia ${l}`}
+                    contentStyle={
+                      isDark
+                        ? { background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0' }
+                        : undefined
+                    }
                   />
                   <Bar dataKey="expense" radius={[3, 3, 0, 0]}>
                     {chartData.map((d, i) => (
-                      <Cell key={i} fill={d.expense > 0 ? '#16a34a' : '#e2e8f0'} />
+                      <Cell
+                        key={i}
+                        fill={d.expense > 0 ? '#16a34a' : isDark ? '#334155' : '#e2e8f0'}
+                      />
                     ))}
                   </Bar>
                 </BarChart>
@@ -152,7 +165,9 @@ export default function DashboardPage() {
             </Card>
 
             <Card className="p-4">
-              <div className="mb-3 text-sm font-medium text-slate-700">Por categoria</div>
+              <div className="mb-3 text-sm font-medium text-slate-700 dark:text-slate-200">
+                Por categoria
+              </div>
               <div className="space-y-2.5">
                 {s?.byCategory.length ? (
                   s.byCategory.map((c) => (
@@ -161,22 +176,24 @@ export default function DashboardPage() {
                         className="h-2 w-2 flex-shrink-0 rounded-full"
                         style={{ background: c.color }}
                       />
-                      <span className="w-20 flex-shrink-0 truncate text-xs text-slate-600">
+                      <span className="w-20 flex-shrink-0 truncate text-xs text-slate-600 dark:text-slate-300">
                         {c.name}
                       </span>
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                         <div
                           className="h-full rounded-full"
                           style={{ width: `${Math.round(c.pct * 100)}%`, background: c.color }}
                         />
                       </div>
-                      <span className="w-16 flex-shrink-0 text-right text-xs text-slate-500">
+                      <span className="w-16 flex-shrink-0 text-right text-xs text-slate-500 dark:text-slate-400">
                         {formatBRL(c.total)}
                       </span>
                     </div>
                   ))
                 ) : (
-                  <p className="py-6 text-center text-sm text-slate-400">Sem gastos no mês</p>
+                  <p className="py-6 text-center text-sm text-slate-400 dark:text-slate-600">
+                    Sem gastos no mês
+                  </p>
                 )}
               </div>
             </Card>
@@ -185,12 +202,14 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             <Card className="p-4">
               <div className="mb-3 flex items-center justify-between">
-                <div className="text-sm font-medium text-slate-700">Últimas transações</div>
+                <div className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Últimas transações
+                </div>
                 <Link to="/transacoes" className="text-xs text-brand hover:underline">
                   ver tudo
                 </Link>
               </div>
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {recent.data?.data.map((t) => {
                   const Icon = categoryIcon(t.category?.name ?? '');
                   return (
@@ -202,14 +221,16 @@ export default function DashboardPage() {
                         <Icon size={15} style={{ color: t.category?.color ?? '#64748b' }} />
                       </div>
                       <div className="flex-1 overflow-hidden">
-                        <div className="truncate text-sm text-slate-700">{t.description}</div>
-                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                        <div className="truncate text-sm text-slate-700 dark:text-slate-200">
+                          {t.description}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
                           {t.category && <Badge color={t.category.color}>{t.category.name}</Badge>}
                           {t.source === 'WHATSAPP' && <span>· via WhatsApp</span>}
                         </div>
                       </div>
                       <div
-                        className={`text-sm font-medium ${t.type === 'INCOME' ? 'text-brand' : 'text-red-600'}`}
+                        className={`text-sm font-medium ${t.type === 'INCOME' ? 'text-brand' : 'text-red-600 dark:text-red-400'}`}
                       >
                         {t.type === 'INCOME' ? '+' : '-'}
                         {formatBRL(t.amount)}
@@ -218,13 +239,17 @@ export default function DashboardPage() {
                   );
                 })}
                 {!recent.data?.data.length && (
-                  <p className="py-6 text-center text-sm text-slate-400">Nenhuma transação ainda</p>
+                  <p className="py-6 text-center text-sm text-slate-400 dark:text-slate-600">
+                    Nenhuma transação ainda
+                  </p>
                 )}
               </div>
             </Card>
 
             <Card className="p-4">
-              <div className="mb-3 text-sm font-medium text-slate-700">Orçamentos do mês</div>
+              <div className="mb-3 text-sm font-medium text-slate-700 dark:text-slate-200">
+                Orçamentos do mês
+              </div>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {budgets.data?.length ? (
                   budgets.data.map((b) => {
@@ -233,9 +258,9 @@ export default function DashboardPage() {
                     const warn = pct >= 80;
                     const barColor = over ? '#dc2626' : warn ? '#f59e0b' : b.color;
                     return (
-                      <div key={b.categoryId} className="rounded-lg bg-slate-50 p-2.5">
+                      <div key={b.categoryId} className="rounded-lg bg-slate-50 p-2.5 dark:bg-slate-800">
                         <div className="mb-1 flex items-center justify-between">
-                          <span className="text-xs font-medium text-slate-600">
+                          <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
                             {b.categoryName}
                           </span>
                           <span
@@ -245,20 +270,20 @@ export default function DashboardPage() {
                             {pct}%
                           </span>
                         </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
+                        <div className="h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                           <div
                             className="h-full rounded-full"
                             style={{ width: `${Math.min(pct, 100)}%`, background: barColor }}
                           />
                         </div>
-                        <div className="mt-1 text-[10px] text-slate-400">
+                        <div className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">
                           {formatBRL(b.spent)} / {formatBRL(b.limit)}
                         </div>
                       </div>
                     );
                   })
                 ) : (
-                  <p className="col-span-2 py-6 text-center text-sm text-slate-400">
+                  <p className="col-span-2 py-6 text-center text-sm text-slate-400 dark:text-slate-600">
                     Nenhum orçamento definido
                   </p>
                 )}
@@ -266,7 +291,7 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-          <p className="text-right text-[11px] text-slate-400">
+          <p className="text-right text-[11px] text-slate-400 dark:text-slate-600">
             Atualizado para {formatDate(new Date().toISOString())} · dados em tempo real da API
           </p>
         </div>

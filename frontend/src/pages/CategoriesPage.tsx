@@ -42,7 +42,7 @@ function NewCategoryModal({ open, onClose }: { open: boolean; onClose: () => voi
             <select
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value })}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             >
               <option value="EXPENSE">Despesa</option>
               <option value="INCOME">Receita</option>
@@ -64,14 +64,14 @@ function NewCategoryModal({ open, onClose }: { open: boolean; onClose: () => voi
                 key={c}
                 type="button"
                 onClick={() => setForm({ ...form, color: c })}
-                className={`h-7 w-7 rounded-full ${form.color === c ? 'ring-2 ring-offset-2 ring-slate-400' : ''}`}
+                className={`h-7 w-7 rounded-full ${form.color === c ? 'ring-2 ring-offset-2 ring-slate-400 dark:ring-offset-slate-900' : ''}`}
                 style={{ background: c }}
                 aria-label={c}
               />
             ))}
           </div>
         </Field>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         <div className="flex justify-end gap-2 pt-1">
           <Button type="button" onClick={onClose}>
             Cancelar
@@ -114,13 +114,15 @@ export default function CategoriesPage() {
                   <Icon size={18} style={{ color: c.color }} />
                 </div>
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-slate-700">{c.name}</div>
+                  <div className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                    {c.name}
+                  </div>
                   <div className="mt-0.5 flex items-center gap-1.5">
                     <Badge color={c.type === 'INCOME' ? '#16a34a' : '#64748b'}>
                       {c.type === 'INCOME' ? 'Receita' : 'Despesa'}
                     </Badge>
                     {c.monthlyLimit != null && (
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500">
                         limite {formatBRL(c.monthlyLimit)}
                       </span>
                     )}
@@ -128,7 +130,7 @@ export default function CategoriesPage() {
                 </div>
                 <button
                   onClick={() => del.mutate(c.id)}
-                  className="text-slate-300 hover:text-red-500"
+                  className="text-slate-300 hover:text-red-500 dark:text-slate-600 dark:hover:text-red-400"
                   aria-label="Excluir"
                 >
                   <Trash2 size={15} />

@@ -48,13 +48,13 @@ export default function SearchPage() {
     >
       <div className="mx-auto max-w-3xl space-y-4">
         <Card className="p-4">
-          <div className="mb-3 flex items-center gap-2 rounded-lg border border-slate-200 px-3">
-            <SearchIcon size={16} className="text-slate-400" />
+          <div className="mb-3 flex items-center gap-2 rounded-lg border border-slate-200 px-3 dark:border-slate-700">
+            <SearchIcon size={16} className="text-slate-400 dark:text-slate-500" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder='Buscar por descrição (ex: "iFood")'
-              className="flex-1 py-2.5 text-sm outline-none"
+              className="flex-1 bg-transparent py-2.5 text-sm text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
             />
           </div>
 
@@ -63,8 +63,8 @@ export default function SearchPage() {
               onClick={() => setCategory('')}
               className={`rounded-full border px-3 py-1 text-xs ${
                 category === ''
-                  ? 'border-brand bg-brand-50 text-brand'
-                  : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                  ? 'border-brand bg-brand-50 text-brand dark:bg-brand/10'
+                  : 'border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800'
               }`}
             >
               Todas
@@ -75,8 +75,8 @@ export default function SearchPage() {
                 onClick={() => setCategory(c.name)}
                 className={`rounded-full border px-3 py-1 text-xs ${
                   category === c.name
-                    ? 'border-brand bg-brand-50 text-brand'
-                    : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                    ? 'border-brand bg-brand-50 text-brand dark:bg-brand/10'
+                    : 'border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800'
                 }`}
               >
                 {c.name}
@@ -92,11 +92,11 @@ export default function SearchPage() {
             <>
               <div className="mb-4 flex items-end justify-between">
                 <div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
                     {category || 'Todas as categorias'} · {q ? `"${q}" · ` : ''}
                     {result?.count ?? 0} lançamento(s)
                   </div>
-                  <div className="mt-1 text-3xl font-semibold text-red-600">
+                  <div className="mt-1 text-3xl font-semibold text-red-600 dark:text-red-400">
                     {formatBRL(result?.total ?? 0)}
                   </div>
                 </div>
@@ -109,7 +109,7 @@ export default function SearchPage() {
                 </Button>
               </div>
 
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {result?.transactions.map((t) => {
                   const Icon = categoryIcon(t.category?.name ?? '');
                   return (
@@ -121,21 +121,23 @@ export default function SearchPage() {
                         <Icon size={15} style={{ color: t.category?.color ?? '#64748b' }} />
                       </div>
                       <div className="flex-1 overflow-hidden">
-                        <div className="truncate text-sm text-slate-700">{t.description}</div>
-                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                        <div className="truncate text-sm text-slate-700 dark:text-slate-200">
+                          {t.description}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
                           <span>{formatDate(t.date)}</span>
                           {t.source === 'WHATSAPP' && <span>· via WhatsApp</span>}
                         </div>
                       </div>
                       {t.category && <Badge color={t.category.color}>{t.category.name}</Badge>}
-                      <div className="w-20 text-right text-sm font-medium text-red-600">
+                      <div className="w-20 text-right text-sm font-medium text-red-600 dark:text-red-400">
                         {formatBRL(t.amount)}
                       </div>
                     </div>
                   );
                 })}
                 {!result?.transactions.length && (
-                  <p className="py-10 text-center text-sm text-slate-400">
+                  <p className="py-10 text-center text-sm text-slate-400 dark:text-slate-600">
                     Nenhum lançamento encontrado para esse filtro
                   </p>
                 )}
