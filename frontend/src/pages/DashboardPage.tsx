@@ -151,6 +151,8 @@ export default function DashboardPage() {
                         ? { background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0' }
                         : undefined
                     }
+                    itemStyle={isDark ? { color: '#e2e8f0' } : undefined}
+                    labelStyle={isDark ? { color: '#94a3b8' } : undefined}
                   />
                   <Bar dataKey="expense" radius={[3, 3, 0, 0]}>
                     {chartData.map((d, i) => (
