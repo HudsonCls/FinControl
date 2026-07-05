@@ -1,6 +1,6 @@
 import type { Category } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
-import { aiEnabled, env } from '../../config/env';
+import { aiEnabled, env, isTest } from '../../config/env';
 import { normalizeText } from './parser';
 
 /** Mapa de palavras-chave -> nome de categoria padrão (fallback sem IA). */
@@ -8,9 +8,12 @@ const KEYWORDS: Record<string, string[]> = {
   Alimentação: [
     'ifood', 'mercado', 'supermercado', 'padaria', 'restaurante', 'lanche', 'comida',
     'almoco', 'jantar', 'pizza', 'burger', 'hamburguer', 'food', 'acai', 'cafe', 'rappi',
+    'paçoca', 'doce', 'salgado', 'bolo', 'sorvete', 'chocolate', 'pastel', 'sushi',
+    'marmita', 'feira', 'açougue', 'bebida', 'cerveja', 'refrigerante',
   ],
   Transporte: [
-    'uber', '99', 'gasolina', 'posto', 'combustivel', 'onibus', 'metro', 'passagem',
+    // '99' foi removido: como palavra inteira ele casa com valores ("gastei 99 no...").
+    'uber', 'gasolina', 'posto', 'combustivel', 'onibus', 'metro', 'passagem',
     'estacionamento', 'shell', 'ipiranga', 'pedagio', 'bilhete',
   ],
   Moradia: [
@@ -26,16 +29,26 @@ const KEYWORDS: Record<string, string[]> = {
   ],
 };
 
+/**
+ * Verifica se o termo aparece como PALAVRA INTEIRA no texto normalizado.
+ * Substring solta causava falsos positivos: "gas" (Moradia) batia dentro
+ * de "GAStei", mandando qualquer gasto sem palavra-chave para Moradia.
+ */
+function hasWholeWord(text: string, term: string): boolean {
+  const escaped = normalizeText(term).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`\\b${escaped}\\b`).test(text);
+}
+
 /** Acha o nome de categoria por nome direto no texto ou por palavra-chave. */
 export function keywordCategoryName(text: string, categoryNames: string[]): string | null {
   const t = normalizeText(text);
 
   for (const name of categoryNames) {
-    if (t.includes(normalizeText(name))) return name;
+    if (hasWholeWord(t, name)) return name;
   }
 
   for (const [cat, kws] of Object.entries(KEYWORDS)) {
-    if (kws.some((k) => t.includes(normalizeText(k)))) {
+    if (kws.some((k) => hasWholeWord(t, k))) {
       const owned = categoryNames.find((n) => normalizeText(n) === normalizeText(cat));
       if (owned) return owned;
     }
@@ -60,25 +73,44 @@ async function aiCategoryName(text: string, categoryNames: string[]): Promise<st
     const answer = block && block.type === 'text' ? block.text.trim() : '';
     const match = categoryNames.find((n) => normalizeText(n) === normalizeText(answer));
     return match ?? null;
-  } catch {
+  } catch (err) {
+    // Não derruba o fluxo (cai no fallback), mas registra: chave inválida ou
+    // sem créditos apareceria aqui — silenciar esconderia a má configuração.
+    if (!isTest) console.error('Categorização por IA falhou; usando fallback:', err);
     return null;
   }
 }
 
-/** Resolve uma categoria EXPLÍCITA (sem cair em "Outros"). Para consultas e limites. */
+/**
+ * Detecção EXPLÍCITA de categoria mencionada no texto (por nome ou palavra-chave),
+ * de forma DETERMINÍSTICA — sem IA e sem cair em "Outros". Retorna null quando
+ * nenhuma categoria é mencionada. Usada por consultas ("quanto gastei em X"),
+ * limites ("limite em X") e receitas — onde chutar uma categoria daria resultado errado.
+ */
 export async function findCategory(userId: string, text: string): Promise<Category | null> {
   const categories = await prisma.category.findMany({ where: { userId } });
-  const names = categories.map((c) => c.name);
-  let chosen = keywordCategoryName(text, names);
-  if (!chosen && aiEnabled) chosen = await aiCategoryName(text, names);
+  const chosen = keywordCategoryName(text, categories.map((c) => c.name));
   if (!chosen) return null;
-  return categories.find((c) => normalizeText(c.name) === normalizeText(chosen!)) ?? null;
+  return categories.find((c) => normalizeText(c.name) === normalizeText(chosen)) ?? null;
 }
 
-/** Categoriza uma DESPESA: tenta explícita; se falhar, cai em "Outros" (se existir). */
+/**
+ * Categoriza uma DESPESA. Com a chave da Anthropic (aiEnabled), a IA decide a
+ * categoria entre as de despesa do usuário; sem chave (ou em erro/sem match),
+ * usa as palavras-chave; por fim, cai em "Outros". Só considera categorias de
+ * despesa (uma receita como "Salário" nunca é atribuída a um gasto).
+ */
 export async function categorizeExpense(userId: string, text: string): Promise<Category | null> {
-  const explicit = await findCategory(userId, text);
-  if (explicit) return explicit;
   const categories = await prisma.category.findMany({ where: { userId } });
-  return categories.find((c) => normalizeText(c.name) === 'outros') ?? null;
+  const expenseCategories = categories.filter((c) => c.type === 'EXPENSE');
+  const names = expenseCategories.map((c) => c.name);
+
+  let chosen: string | null = null;
+  if (aiEnabled) chosen = await aiCategoryName(text, names);
+  if (!chosen) chosen = keywordCategoryName(text, names);
+
+  const matched = chosen
+    ? expenseCategories.find((c) => normalizeText(c.name) === normalizeText(chosen!))
+    : undefined;
+  return matched ?? expenseCategories.find((c) => normalizeText(c.name) === 'outros') ?? null;
 }
