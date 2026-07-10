@@ -10,6 +10,7 @@ const SUGGESTIONS = [
   'Quanto gastei em alimentação?',
   'Recebi 4800 de salário',
   'Limite de 500 em lazer',
+  'Resumo semanal',
 ];
 
 function Bubble({ msg }: { msg: Pick<ChatMessage, 'role' | 'content' | 'createdAt'> }) {

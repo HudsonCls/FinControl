@@ -24,6 +24,8 @@ const schema = z.object({
   // Proteção de força bruta em /api/auth/login. Padrão: 10 tentativas / 15min por IP.
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().default(10),
   LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().default(15 * 60 * 1000),
+  // Hora (de Brasília) a partir da qual os resumos automáticos do dia são enviados.
+  SUMMARY_HOUR: z.coerce.number().default(8),
 });
 
 const parsed = schema.safeParse(process.env);

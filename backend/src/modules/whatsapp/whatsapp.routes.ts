@@ -3,6 +3,7 @@ import { validate } from '../../middleware/validate';
 import { asyncHandler } from '../../lib/asyncHandler';
 import { env } from '../../config/env';
 import * as service from './whatsapp.service';
+import { dispatchDueSummaries } from './summaries.service';
 import { incomingSchema } from './whatsapp.schemas';
 
 export const whatsappRouter = Router();
@@ -48,5 +49,23 @@ whatsappRouter.post(
       userId: body.userId,
     });
     res.status(200).json({ data: result });
+  }),
+);
+
+/**
+ * Despacha os resumos automáticos devidos (diário/semanal/mensal).
+ * Deve ser chamado por um agendador externo (ex.: cron-job.org a cada 30min):
+ * GET /api/whatsapp/dispatch-summaries?token=<WHATSAPP_WEBHOOK_SECRET>
+ * Idempotente por período — chamar várias vezes ao dia não duplica envios.
+ */
+whatsappRouter.get(
+  '/dispatch-summaries',
+  asyncHandler(async (req, res) => {
+    if (env.WHATSAPP_WEBHOOK_SECRET && req.query.token !== env.WHATSAPP_WEBHOOK_SECRET) {
+      res.sendStatus(403);
+      return;
+    }
+    const result = await dispatchDueSummaries();
+    res.json({ data: { checked: result.checked, sent: result.sent } });
   }),
 );

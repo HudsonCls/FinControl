@@ -11,13 +11,28 @@ export type Intent =
   | 'DELETE_LAST'
   | 'EDIT_LAST_AMOUNT'
   | 'PACE_QUERY'
+  | 'SET_SUMMARY'
+  | 'CANCEL_SUMMARY'
   | 'UNKNOWN';
+
+export type SummaryFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY';
 
 export interface ParsedMessage {
   intent: Intent;
   amountCents: number | null;
   description: string;
   text: string;
+  /** Preenchido quando intent === 'SET_SUMMARY'. */
+  summaryFrequency?: SummaryFrequency;
+}
+
+/** "resumo diário/semanal/mensal" -> frequência de assinatura; null se não for pedido de assinatura. */
+export function detectSummaryFrequency(normalized: string): SummaryFrequency | null {
+  if (!/\bresumo/.test(normalized)) return null;
+  if (/diari/.test(normalized)) return 'DAILY';
+  if (/semanal/.test(normalized)) return 'WEEKLY';
+  if (/mensal/.test(normalized)) return 'MONTHLY';
+  return null;
 }
 
 /** Remove acentos e baixa a caixa, para comparações robustas. */
@@ -57,6 +72,13 @@ export function parseAmountCents(text: string): number | null {
 
 function detectIntent(text: string, hasAmount: boolean): Intent {
   const t = normalizeText(text);
+
+  // Assinatura de resumo automático — checada ANTES de DELETE_LAST ("cancela o
+  // resumo" contém "cancela" e sem dígitos, colidiria) e de QUERY_SPENT ("resumo").
+  if (/\bresumo/.test(t) && /(cancelar|cancela|parar|pare|desativar|desativa|nao quero)/.test(t)) {
+    return 'CANCEL_SUMMARY';
+  }
+  if (detectSummaryFrequency(t)) return 'SET_SUMMARY';
 
   // Desfazer/corrigir o último lançamento têm prioridade sobre os demais padrões
   // (evita colisão com "quanto"/"gast" de QUERY_SPENT ou com hasAmount de ADD_EXPENSE).
@@ -105,5 +127,8 @@ export function parse(text: string): ParsedMessage {
     amountCents,
     description: cleanDescription(text),
     text,
+    ...(intent === 'SET_SUMMARY'
+      ? { summaryFrequency: detectSummaryFrequency(normalizeText(text))! }
+      : {}),
   };
 }

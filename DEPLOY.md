@@ -134,6 +134,25 @@ Vira um app com ícone próprio, abre em tela cheia. Sem loja, sem custo.
 
 ---
 
+## Passo 7 — Resumos automáticos por WhatsApp (cron grátis) — opcional
+
+O usuário assina pelo próprio chat/WhatsApp: `resumo diário`, `resumo semanal` ou
+`resumo mensal` (e `cancelar resumo`). O envio acontece de manhã (a partir das 8h de
+Brasília — ajustável pela env `SUMMARY_HOUR`): diário cobre o dia anterior, semanal sai
+às segundas, mensal no dia 1º.
+
+Como o plano grátis do Render "dorme", quem dispara o envio é um ping externo:
+
+1. Crie conta grátis em **cron-job.org** (sem cartão).
+2. **Create cronjob** → URL:
+   `https://fincontrol-api-05md.onrender.com/api/whatsapp/dispatch-summaries?token=SEU_WHATSAPP_WEBHOOK_SECRET`
+   (troque pelo valor da env `WHATSAPP_WEBHOOK_SECRET` do Render)
+3. Agendamento: **a cada 30 minutos** → Save.
+
+O endpoint é idempotente (chamar várias vezes ao dia não duplica envios) e o ping de
+30 em 30 min ainda mantém a API acordada durante o dia. Lembre que, no sandbox da
+Twilio, cada número precisa ter mandado `join ...` nos últimos ~3 dias para receber.
+
 ## Custos e manutenção
 
 | Item | Plano grátis | Limite/observação |

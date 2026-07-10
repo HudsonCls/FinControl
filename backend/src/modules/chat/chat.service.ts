@@ -215,6 +215,34 @@ export async function processMessage(
       break;
     }
 
+    case 'SET_SUMMARY': {
+      const freq = parsed.summaryFrequency!;
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: { summaryFrequency: freq },
+      });
+      const label =
+        freq === 'DAILY'
+          ? 'diário (toda manhã, sobre o dia anterior)'
+          : freq === 'WEEKLY'
+            ? 'semanal (toda segunda, sobre a semana anterior)'
+            : 'mensal (todo dia 1º, sobre o mês anterior)';
+      reply = `Combinado! Vou te enviar um resumo ${label} pelo WhatsApp.`;
+      if (!user.phone) {
+        reply += ' ⚠ Seu WhatsApp ainda não está vinculado — cadastre seu número no perfil para receber.';
+      }
+      break;
+    }
+
+    case 'CANCEL_SUMMARY': {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { summaryFrequency: 'NONE' },
+      });
+      reply = 'Resumos automáticos cancelados. Para reativar: "resumo diário", "semanal" ou "mensal".';
+      break;
+    }
+
     default:
       reply =
         'Oi! Me diga um gasto ("gastei 42,90 no iFood"), pergunte ' +
