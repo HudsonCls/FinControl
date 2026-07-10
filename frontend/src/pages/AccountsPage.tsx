@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Plus, Trash2, Wallet, CreditCard, Landmark, Banknote } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Card, Button, Spinner, Modal, Field, Input } from '@/components/ui';
-import { formatBRL } from '@/lib/format';
+import { Money } from '@/components/Money';
 import { apiError } from '@/lib/api';
 import { useAccounts, useCreateAccount, useDeleteAccount } from '@/lib/queries';
 import type { AccountType } from '@/lib/types';
@@ -134,7 +134,7 @@ export default function AccountsPage() {
                   {a.institution ? ` · ${a.institution}` : ''}
                 </div>
                 <div className="mt-2 text-lg font-semibold text-slate-800 dark:text-slate-100">
-                  {formatBRL(a.balance)}
+                  <Money value={a.balance} />
                 </div>
               </Card>
             );

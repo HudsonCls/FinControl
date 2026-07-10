@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { MonthSelector } from '@/components/MonthSelector';
 import { Card, Button, Spinner } from '@/components/ui';
+import { Money } from '@/components/Money';
 import { categoryIcon } from '@/lib/icons';
-import { formatBRL, currentMonth } from '@/lib/format';
+import { currentMonth } from '@/lib/format';
 import { useCategories, useBudgets, useSummary, useSetBudget } from '@/lib/queries';
 
 export default function BudgetsPage() {
@@ -81,7 +82,7 @@ export default function BudgetsPage() {
                       />
                     </div>
                     <div className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-                      {formatBRL(spent)} de {formatBRL(limit)}
+                      <Money value={spent} /> de <Money value={limit} />
                     </div>
                   </>
                 )}

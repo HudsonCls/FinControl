@@ -19,10 +19,12 @@ import {
 import { Layout } from '@/components/Layout';
 import { MonthSelector } from '@/components/MonthSelector';
 import { Card, Spinner, Badge, Button } from '@/components/ui';
+import { Money } from '@/components/Money';
 import { categoryIcon } from '@/lib/icons';
 import { formatBRL, formatDate, currentMonth, daysRemainingInThisMonth } from '@/lib/format';
 import { useSummary, useBudgets, useTransactions, useAlerts } from '@/lib/queries';
 import { useTheme } from '@/context/ThemeContext';
+import { usePrivacy } from '@/context/PrivacyContext';
 
 function Kpi({
   label,
@@ -32,7 +34,7 @@ function Kpi({
   hint,
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   icon: ReactNode;
   color: string;
   hint?: string;
@@ -54,6 +56,7 @@ function Kpi({
 export default function DashboardPage() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { hidden } = usePrivacy();
   const [month, setMonth] = useState(currentMonth());
   const summary = useSummary(month);
   const budgets = useBudgets(month);
@@ -65,14 +68,15 @@ export default function DashboardPage() {
   const chartData =
     s?.daily.map((d) => ({ day: d.date.slice(8, 10), expense: d.expense })) ?? [];
 
-  // Ritmo de gasto só faz sentido para o mês corrente.
+  // Ritmo de gasto só faz sentido para o mês corrente. Oculto no modo privacidade
+  // (o valor por dia revelaria o saldo).
   const isCurrentMonth = month === currentMonth();
   const paceHint =
-    isCurrentMonth && s
-      ? s.balance <= 0
+    hidden || !isCurrentMonth || !s
+      ? undefined
+      : s.balance <= 0
         ? 'sem margem esse mês'
-        : `≈ ${formatBRL(s.balance / daysRemainingInThisMonth())}/dia até o fim do mês`
-      : undefined;
+        : `≈ ${formatBRL(s.balance / daysRemainingInThisMonth())}/dia até o fim do mês`;
 
   return (
     <Layout
@@ -102,19 +106,19 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Kpi
               label="Total gasto"
-              value={formatBRL(s?.totalExpense ?? 0)}
+              value={<Money value={s?.totalExpense ?? 0} />}
               icon={<ArrowDownCircle size={14} />}
               color="#dc2626"
             />
             <Kpi
               label="Receitas"
-              value={formatBRL(s?.totalIncome ?? 0)}
+              value={<Money value={s?.totalIncome ?? 0} />}
               icon={<ArrowUpCircle size={14} />}
               color="#16a34a"
             />
             <Kpi
               label="Saldo livre"
-              value={formatBRL(s?.balance ?? 0)}
+              value={<Money value={s?.balance ?? 0} />}
               icon={<Wallet size={14} />}
               color="#2563eb"
               hint={paceHint}
@@ -188,7 +192,7 @@ export default function DashboardPage() {
                         />
                       </div>
                       <span className="w-16 flex-shrink-0 text-right text-xs text-slate-500 dark:text-slate-400">
-                        {formatBRL(c.total)}
+                        <Money value={c.total} />
                       </span>
                     </div>
                   ))
@@ -235,7 +239,7 @@ export default function DashboardPage() {
                         className={`text-sm font-medium ${t.type === 'INCOME' ? 'text-brand' : 'text-red-600 dark:text-red-400'}`}
                       >
                         {t.type === 'INCOME' ? '+' : '-'}
-                        {formatBRL(t.amount)}
+                        <Money value={t.amount} />
                       </div>
                     </div>
                   );
@@ -279,7 +283,7 @@ export default function DashboardPage() {
                           />
                         </div>
                         <div className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">
-                          {formatBRL(b.spent)} / {formatBRL(b.limit)}
+                          <Money value={b.spent} /> / <Money value={b.limit} />
                         </div>
                       </div>
                     );

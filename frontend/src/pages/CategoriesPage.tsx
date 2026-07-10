@@ -2,8 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Card, Button, Badge, Spinner, Modal, Field, Input } from '@/components/ui';
+import { Money } from '@/components/Money';
 import { categoryIcon } from '@/lib/icons';
-import { formatBRL } from '@/lib/format';
 import { apiError } from '@/lib/api';
 import { useCategories, useCreateCategory, useDeleteCategory } from '@/lib/queries';
 
@@ -123,7 +123,7 @@ export default function CategoriesPage() {
                     </Badge>
                     {c.monthlyLimit != null && (
                       <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                        limite {formatBRL(c.monthlyLimit)}
+                        limite <Money value={c.monthlyLimit} />
                       </span>
                     )}
                   </div>

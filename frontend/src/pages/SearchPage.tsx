@@ -3,8 +3,9 @@ import { Search as SearchIcon, Download } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { MonthSelector } from '@/components/MonthSelector';
 import { Card, Input, Spinner, Badge, Button } from '@/components/ui';
+import { Money } from '@/components/Money';
 import { categoryIcon } from '@/lib/icons';
-import { formatBRL, formatDate, currentMonth } from '@/lib/format';
+import { formatDate, currentMonth } from '@/lib/format';
 import { useCategories, useSearch } from '@/lib/queries';
 import { api } from '@/lib/api';
 
@@ -97,7 +98,7 @@ export default function SearchPage() {
                     {result?.count ?? 0} lançamento(s)
                   </div>
                   <div className="mt-1 text-3xl font-semibold text-red-600 dark:text-red-400">
-                    {formatBRL(result?.total ?? 0)}
+                    <Money value={result?.total ?? 0} />
                   </div>
                 </div>
                 <Button
@@ -131,7 +132,7 @@ export default function SearchPage() {
                       </div>
                       {t.category && <Badge color={t.category.color}>{t.category.name}</Badge>}
                       <div className="w-20 text-right text-sm font-medium text-red-600 dark:text-red-400">
-                        {formatBRL(t.amount)}
+                        <Money value={t.amount} />
                       </div>
                     </div>
                   );

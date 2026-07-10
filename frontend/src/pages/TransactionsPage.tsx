@@ -2,8 +2,9 @@ import { useState, type FormEvent } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Card, Button, Badge, Spinner, Modal, Field, Input } from '@/components/ui';
+import { Money } from '@/components/Money';
 import { categoryIcon } from '@/lib/icons';
-import { formatBRL, formatDate } from '@/lib/format';
+import { formatDate } from '@/lib/format';
 import { apiError } from '@/lib/api';
 import {
   useTransactions,
@@ -228,7 +229,7 @@ export default function TransactionsPage() {
                       }`}
                     >
                       {t.type === 'INCOME' ? '+' : '-'}
-                      {formatBRL(t.amount)}
+                      <Money value={t.amount} />
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       <button

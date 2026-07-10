@@ -20,6 +20,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useAlerts } from '@/lib/queries';
 import { ProfileModal } from '@/components/ProfileModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { PrivacyToggle } from '@/components/PrivacyToggle';
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -163,6 +164,7 @@ export function Layout({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {actions}
+            <PrivacyToggle />
             <ThemeToggle />
           </div>
         </header>
