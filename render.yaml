@@ -44,3 +44,9 @@ services:
         value: fincontrol-verify
       - key: WHATSAPP_WEBHOOK_SECRET
         sync: false
+      # E-mails reais (código de redefinição de senha / verificação de e-mail).
+      # Sem chave, roda em modo simulado (só aparece no log do Render).
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: "FinControl <onboarding@resend.dev>"
