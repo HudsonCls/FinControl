@@ -1,13 +1,23 @@
-import { useState, type FormEvent } from 'react';
-import { Lock, DollarSign } from 'lucide-react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
+import { Lock, DollarSign, Fingerprint } from 'lucide-react';
 import { useAppLock } from '@/context/AppLockContext';
 import { useAuth } from '@/context/AuthContext';
 
 export function LockScreen() {
-  const { unlock, disablePin } = useAppLock();
+  const { unlock, disablePin, biometricAvailable, unlockWithBiometrics } = useAppLock();
   const { logout } = useAuth();
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
+  const promptedRef = useRef(false);
+
+  // Ao abrir o app travado num aparelho com biometria, pede a digital/face
+  // automaticamente uma vez; se cancelar, o usuário digita o PIN.
+  useEffect(() => {
+    if (biometricAvailable && !promptedRef.current) {
+      promptedRef.current = true;
+      void unlockWithBiometrics();
+    }
+  }, [biometricAvailable, unlockWithBiometrics]);
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -61,6 +71,15 @@ export function LockScreen() {
           Desbloquear
         </button>
       </form>
+
+      {biometricAvailable && (
+        <button
+          onClick={() => void unlockWithBiometrics()}
+          className="flex items-center gap-1.5 text-sm text-brand hover:underline"
+        >
+          <Fingerprint size={16} /> Usar biometria
+        </button>
+      )}
 
       <button onClick={forgot} className="text-xs text-slate-400 hover:underline dark:text-slate-500">
         Esqueci o PIN (sair da conta)

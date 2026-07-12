@@ -15,7 +15,7 @@ function LegalLayout({ title, children }: { title: string; children: ReactNode }
             <DollarSign size={16} />
           </div>
           <span className="flex-1 text-sm font-semibold text-slate-800 dark:text-slate-100">
-            FinControl
+            Avora
           </span>
           <ThemeToggle />
         </div>
@@ -43,17 +43,17 @@ export function TermsPage() {
   return (
     <LegalLayout title="Termos de Uso">
       <section>
-        <h2>1. O que é o FinControl</h2>
+        <h2>1. O que é o Avora</h2>
         <p>
-          O FinControl é uma ferramenta de organização financeira pessoal: você registra
+          O Avora é uma ferramenta de organização financeira pessoal: você registra
           receitas e despesas (pelo aplicativo ou por mensagens de WhatsApp), define
           orçamentos por categoria e acompanha relatórios dos seus próprios dados.
         </p>
       </section>
       <section>
-        <h2>2. O que o FinControl NÃO é</h2>
+        <h2>2. O que o Avora NÃO é</h2>
         <p>
-          O FinControl <strong>não é uma instituição financeira</strong>, não movimenta
+          O Avora <strong>não é uma instituição financeira</strong>, não movimenta
           dinheiro, não se conecta a contas bancárias, não realiza pagamentos e não
           oferece aconselhamento financeiro, contábil ou de investimentos. Todo conteúdo
           exibido (totais, alertas, resumos e categorização automática) tem caráter

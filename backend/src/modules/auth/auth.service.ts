@@ -165,8 +165,8 @@ export async function startPasswordReset(email: string): Promise<void> {
     },
   });
 
-  const text = `Seu código para redefinir a senha do FinControl é: ${code} (válido por 15 minutos). Se não foi você, ignore esta mensagem.`;
-  await sendEmail(user.email, 'FinControl — redefinição de senha', text);
+  const text = `Seu código para redefinir a senha do Avora é: ${code} (válido por 15 minutos). Se não foi você, ignore esta mensagem.`;
+  await sendEmail(user.email, 'Avora — redefinição de senha', text);
   if (user.phone) await sendWhatsapp(user.phone, text);
 }
 
@@ -209,8 +209,8 @@ export async function startEmailVerification(userId: string): Promise<void> {
       verifyCodeExpiresAt: new Date(Date.now() + CODE_TTL_MS),
     },
   });
-  const text = `Seu código de verificação do FinControl é: ${code} (válido por 15 minutos).`;
-  await sendEmail(user.email, 'FinControl — confirme seu e-mail', text);
+  const text = `Seu código de verificação do Avora é: ${code} (válido por 15 minutos).`;
+  await sendEmail(user.email, 'Avora — confirme seu e-mail', text);
   if (user.phone) await sendWhatsapp(user.phone, text);
 }
 

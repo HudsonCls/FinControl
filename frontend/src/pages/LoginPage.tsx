@@ -145,7 +145,7 @@ export default function LoginPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand text-white">
             <DollarSign size={24} />
           </div>
-          <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">FinControl</h1>
+          <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">Avora</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">seu hub de controle financeiro</p>
         </div>
 

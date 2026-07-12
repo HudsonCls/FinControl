@@ -52,7 +52,7 @@ function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; onCloseMo
           <DollarSign size={18} />
         </div>
         <div className="flex-1">
-          <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">FinControl</div>
+          <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">Avora</div>
           <div className="text-[11px] text-slate-400 dark:text-slate-500">hub financeiro</div>
         </div>
         <button

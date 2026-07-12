@@ -36,7 +36,7 @@ export async function processIncoming(opts: IncomingMessage): Promise<IncomingRe
   if (!userId) {
     return {
       handled: false,
-      reply: 'Este número não está vinculado a uma conta FinControl.',
+      reply: 'Este número não está vinculado a uma conta Avora.',
     };
   }
 

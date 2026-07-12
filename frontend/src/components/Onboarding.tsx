@@ -7,7 +7,7 @@ const SLIDES = [
   {
     icon: MessageCircle,
     title: 'Registre gastos pelo WhatsApp',
-    body: 'Mande "gastei 20 no mercado" e o FinControl anota, categoriza e responde na hora — sem abrir o app.',
+    body: 'Mande "gastei 20 no mercado" e o Avora anota, categoriza e responde na hora — sem abrir o app.',
   },
   {
     icon: Target,
@@ -43,7 +43,7 @@ export function Onboarding() {
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand text-white">
             <DollarSign size={15} />
           </div>
-          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">FinControl</span>
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Avora</span>
         </div>
         <button onClick={finish} className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
           Pular

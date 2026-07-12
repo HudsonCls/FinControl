@@ -71,7 +71,7 @@ export default function ChatPage() {
           </div>
           <div>
             <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-              FinControl IA
+              Avora IA
             </div>
             <div className="text-[11px] text-brand">online · responde na hora</div>
           </div>

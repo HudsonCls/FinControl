@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'FinControl — Hub Financeiro',
-        short_name: 'FinControl',
+        name: 'Avora — controle financeiro',
+        short_name: 'Avora',
         description: 'Controle financeiro com chat no WhatsApp',
         theme_color: '#16a34a',
         background_color: '#f8fafc',

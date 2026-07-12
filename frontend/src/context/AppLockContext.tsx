@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { biometricsAvailable, authenticateBiometric } from '@/lib/native';
 
 const STORAGE_KEY = 'fincontrol_pin';
 
@@ -16,7 +17,9 @@ function hashPin(pin: string): string {
 interface AppLockCtx {
   pinEnabled: boolean;
   locked: boolean;
+  biometricAvailable: boolean;
   unlock: (pin: string) => boolean;
+  unlockWithBiometrics: () => Promise<boolean>;
   enablePin: (pin: string) => void;
   disablePin: () => void;
   lock: () => void;
@@ -27,8 +30,20 @@ const Ctx = createContext<AppLockCtx | undefined>(undefined);
 export function AppLockProvider({ children }: { children: ReactNode }) {
   const [pinHash, setPinHash] = useState<string | null>(() => localStorage.getItem(STORAGE_KEY));
   const [locked, setLocked] = useState<boolean>(() => Boolean(localStorage.getItem(STORAGE_KEY)));
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
 
   const pinEnabled = pinHash !== null;
+
+  // Descobre uma vez se o aparelho tem biometria (só no app nativo).
+  useEffect(() => {
+    biometricsAvailable().then(setBiometricAvailable);
+  }, []);
+
+  async function unlockWithBiometrics(): Promise<boolean> {
+    const ok = await authenticateBiometric();
+    if (ok) setLocked(false);
+    return ok;
+  }
 
   // Re-tranca ao voltar de segundo plano (comportamento de app de banco).
   useEffect(() => {
@@ -63,7 +78,18 @@ export function AppLockProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <Ctx.Provider value={{ pinEnabled, locked, unlock, enablePin, disablePin, lock }}>
+    <Ctx.Provider
+      value={{
+        pinEnabled,
+        locked,
+        biometricAvailable,
+        unlock,
+        unlockWithBiometrics,
+        enablePin,
+        disablePin,
+        lock,
+      }}
+    >
       {children}
     </Ctx.Provider>
   );

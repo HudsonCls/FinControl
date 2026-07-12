@@ -29,7 +29,7 @@ const schema = z.object({
   // Opcional: habilita e-mails reais (reset de senha/verificação) via Resend.
   // Sem chave, os e-mails são simulados (log) e os códigos também vão por WhatsApp.
   RESEND_API_KEY: z.string().optional().default(''),
-  EMAIL_FROM: z.string().default('FinControl <onboarding@resend.dev>'),
+  EMAIL_FROM: z.string().default('Avora <onboarding@resend.dev>'),
 });
 
 const parsed = schema.safeParse(process.env);

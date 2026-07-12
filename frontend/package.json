@@ -7,9 +7,19 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:app": "vite build && cap sync android",
+    "android:assets": "node scripts/gen-native-assets.mjs && capacitor-assets generate --android",
+    "android:open": "cap open android",
+    "android:run": "cap run android",
+    "android:apk": "npm run build:app && cd android && gradlew.bat assembleDebug"
   },
   "dependencies": {
+    "@aparajita/capacitor-biometric-auth": "^8.0.2",
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/splash-screen": "^6.0.4",
+    "@capacitor/status-bar": "^6.0.3",
     "@tanstack/react-query": "^5.62.7",
     "axios": "^1.7.9",
     "clsx": "^2.1.1",
@@ -20,6 +30,8 @@
     "recharts": "^2.13.3"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^6.2.1",
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
