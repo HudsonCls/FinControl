@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   List,
-  Search,
+  ArrowLeftRight,
   Target,
   MessageCircle,
   Tag,
@@ -25,7 +25,7 @@ import { PrivacyToggle } from '@/components/PrivacyToggle';
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/transacoes', label: 'Transações', icon: List },
-  { to: '/busca', label: 'Busca', icon: Search },
+  { to: '/busca', label: 'Movimentação', icon: ArrowLeftRight },
   { to: '/orcamentos', label: 'Orçamentos', icon: Target },
   { to: '/chat', label: 'Chat WhatsApp', icon: MessageCircle },
   { to: '/categorias', label: 'Categorias', icon: Tag },

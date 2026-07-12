@@ -209,11 +209,9 @@ export async function startEmailVerification(userId: string): Promise<void> {
       verifyCodeExpiresAt: new Date(Date.now() + CODE_TTL_MS),
     },
   });
-  await sendEmail(
-    user.email,
-    'FinControl — confirme seu e-mail',
-    `Seu código de verificação do FinControl é: ${code} (válido por 15 minutos).`,
-  );
+  const text = `Seu código de verificação do FinControl é: ${code} (válido por 15 minutos).`;
+  await sendEmail(user.email, 'FinControl — confirme seu e-mail', text);
+  if (user.phone) await sendWhatsapp(user.phone, text);
 }
 
 /** Confirma o e-mail com o código recebido. */
