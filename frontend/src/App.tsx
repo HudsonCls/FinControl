@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useAppLock } from '@/context/AppLockContext';
+import { LockScreen } from '@/components/LockScreen';
 import { Spinner } from '@/components/ui';
 import LoginPage from '@/pages/LoginPage';
 import { TermsPage, PrivacyPage } from '@/pages/LegalPages';
@@ -11,6 +13,7 @@ import BudgetsPage from '@/pages/BudgetsPage';
 import CategoriesPage from '@/pages/CategoriesPage';
 import AccountsPage from '@/pages/AccountsPage';
 import AlertsPage from '@/pages/AlertsPage';
+import { Onboarding } from '@/components/Onboarding';
 import { type ReactNode } from 'react';
 
 function Protected({ children }: { children: ReactNode }) {
@@ -22,20 +25,25 @@ function Protected({ children }: { children: ReactNode }) {
 
 export default function App() {
   const { user } = useAuth();
+  const { locked } = useAppLock();
   return (
-    <Routes>
-      <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
-      <Route path="/termos" element={<TermsPage />} />
-      <Route path="/privacidade" element={<PrivacyPage />} />
-      <Route path="/" element={<Protected><DashboardPage /></Protected>} />
-      <Route path="/transacoes" element={<Protected><TransactionsPage /></Protected>} />
-      <Route path="/busca" element={<Protected><SearchPage /></Protected>} />
-      <Route path="/orcamentos" element={<Protected><BudgetsPage /></Protected>} />
-      <Route path="/chat" element={<Protected><ChatPage /></Protected>} />
-      <Route path="/categorias" element={<Protected><CategoriesPage /></Protected>} />
-      <Route path="/contas" element={<Protected><AccountsPage /></Protected>} />
-      <Route path="/alertas" element={<Protected><AlertsPage /></Protected>} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+        <Route path="/termos" element={<TermsPage />} />
+        <Route path="/privacidade" element={<PrivacyPage />} />
+        <Route path="/" element={<Protected><DashboardPage /></Protected>} />
+        <Route path="/transacoes" element={<Protected><TransactionsPage /></Protected>} />
+        <Route path="/busca" element={<Protected><SearchPage /></Protected>} />
+        <Route path="/orcamentos" element={<Protected><BudgetsPage /></Protected>} />
+        <Route path="/chat" element={<Protected><ChatPage /></Protected>} />
+        <Route path="/categorias" element={<Protected><CategoriesPage /></Protected>} />
+        <Route path="/contas" element={<Protected><AccountsPage /></Protected>} />
+        <Route path="/alertas" element={<Protected><AlertsPage /></Protected>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      {user && <Onboarding />}
+      {user && locked && <LockScreen />}
+    </>
   );
 }

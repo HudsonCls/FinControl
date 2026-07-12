@@ -6,6 +6,7 @@ import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PrivacyProvider } from './context/PrivacyContext';
+import { AppLockProvider } from './context/AppLockContext';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -20,9 +21,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <ThemeProvider>
           <PrivacyProvider>
-            <AuthProvider>
-              <App />
-            </AuthProvider>
+            <AppLockProvider>
+              <AuthProvider>
+                <App />
+              </AuthProvider>
+            </AppLockProvider>
           </PrivacyProvider>
         </ThemeProvider>
       </BrowserRouter>

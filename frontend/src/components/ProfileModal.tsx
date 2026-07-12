@@ -1,8 +1,88 @@
 import { useState, type FormEvent } from 'react';
-import { MessageCircle, BadgeCheck, AlertTriangle } from 'lucide-react';
+import { MessageCircle, BadgeCheck, AlertTriangle, Lock } from 'lucide-react';
 import { Modal, Field, Input, Button } from '@/components/ui';
 import { api, apiError } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { useAppLock } from '@/context/AppLockContext';
+
+function AppLockSection() {
+  const { pinEnabled, enablePin, disablePin } = useAppLock();
+  const [step, setStep] = useState<'idle' | 'set'>('idle');
+  const [pin, setPin] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState('');
+
+  function save() {
+    if (pin.length < 4) {
+      setError('O PIN precisa de pelo menos 4 dígitos');
+      return;
+    }
+    if (pin !== confirm) {
+      setError('Os PINs não conferem');
+      return;
+    }
+    enablePin(pin);
+    setStep('idle');
+    setPin('');
+    setConfirm('');
+    setError('');
+  }
+
+  const onlyDigits = (v: string) => v.replace(/\D/g, '').slice(0, 6);
+
+  return (
+    <div className="mt-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+      <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+        <Lock size={13} /> Bloqueio por PIN
+      </div>
+      {pinEnabled ? (
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-brand">Ativado · pede o PIN ao abrir o app</span>
+          <Button type="button" onClick={disablePin}>
+            Desativar
+          </Button>
+        </div>
+      ) : step === 'idle' ? (
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            Exige um PIN para abrir o app neste aparelho
+          </span>
+          <Button type="button" onClick={() => setStep('set')}>
+            Ativar
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              type="password"
+              inputMode="numeric"
+              value={pin}
+              onChange={(e) => setPin(onlyDigits(e.target.value))}
+              placeholder="PIN (4-6 dígitos)"
+            />
+            <Input
+              type="password"
+              inputMode="numeric"
+              value={confirm}
+              onChange={(e) => setConfirm(onlyDigits(e.target.value))}
+              placeholder="Confirmar PIN"
+            />
+          </div>
+          {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <Button type="button" onClick={() => { setStep('idle'); setPin(''); setConfirm(''); setError(''); }}>
+              Cancelar
+            </Button>
+            <Button type="button" variant="primary" onClick={save}>
+              Salvar PIN
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function EmailVerification() {
   const { user, setUser } = useAuth();
@@ -187,6 +267,7 @@ export function ProfileModal({ open, onClose }: { open: boolean; onClose: () => 
           </span>
         </div>
         <EmailVerification />
+        <AppLockSection />
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         <div className="flex justify-end gap-2 pt-1">
           <Button type="button" onClick={onClose}>
