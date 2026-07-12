@@ -1,10 +1,23 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'node:crypto';
 import type { User } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 import { AppError } from '../../lib/errors';
 import { signToken } from '../../lib/jwt';
 import { normalizePhone, PHONE_REGEX } from '../../lib/phone';
+import { sendEmail } from '../../lib/mailer';
+import { sendWhatsapp } from '../whatsapp/twilioAdapter';
 import type { RegisterInput, LoginInput, UpdateMeInput } from './auth.schemas';
+
+/** Código numérico de 6 dígitos + hash sha256 (curto demais para bcrypt valer a pena;
+ * a proteção real é a expiração de 15min + rate limit no endpoint). */
+function generateCode(): string {
+  return String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
+}
+function hashCode(code: string): string {
+  return crypto.createHash('sha256').update(code).digest('hex');
+}
+const CODE_TTL_MS = 15 * 60 * 1000;
 
 /** Normaliza e valida um telefone; lança se o formato não for E.164 (+DDI...). */
 function normalizeOrThrow(raw: string): string {
@@ -22,6 +35,7 @@ export interface SerializedUser {
   email: string;
   name: string;
   phone: string | null;
+  emailVerifiedAt: Date | null;
   createdAt: Date;
 }
 
@@ -31,6 +45,7 @@ function serialize(user: User): SerializedUser {
     email: user.email,
     name: user.name,
     phone: user.phone,
+    emailVerifiedAt: user.emailVerifiedAt,
     createdAt: user.createdAt,
   };
 }
@@ -118,4 +133,103 @@ export async function updateMe(userId: string, input: UpdateMeInput): Promise<Se
     },
   });
   return serialize(user);
+}
+
+/**
+ * Exclui a conta e TODOS os dados (cascade no banco). Exige a senha atual —
+ * um JWT roubado não basta para destruir a conta (requisito das lojas).
+ */
+export async function deleteMe(userId: string, password: string): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw AppError.notFound('Usuário não encontrado');
+  const ok = await bcrypt.compare(password, user.password);
+  if (!ok) throw AppError.unauthorized('Senha incorreta');
+  await prisma.user.delete({ where: { id: userId } });
+}
+
+/**
+ * Inicia o "esqueci minha senha": gera código de 6 dígitos (15min) e envia
+ * por e-mail (se configurado) e por WhatsApp (se vinculado). Não revela se o
+ * e-mail existe — a rota sempre responde 200 genérico.
+ */
+export async function startPasswordReset(email: string): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return;
+
+  const code = generateCode();
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      resetCodeHash: hashCode(code),
+      resetCodeExpiresAt: new Date(Date.now() + CODE_TTL_MS),
+    },
+  });
+
+  const text = `Seu código para redefinir a senha do FinControl é: ${code} (válido por 15 minutos). Se não foi você, ignore esta mensagem.`;
+  await sendEmail(user.email, 'FinControl — redefinição de senha', text);
+  if (user.phone) await sendWhatsapp(user.phone, text);
+}
+
+/** Conclui o reset: valida o código e troca a senha. */
+export async function resetPassword(
+  email: string,
+  code: string,
+  newPassword: string,
+): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { email } });
+  const valid =
+    user &&
+    user.resetCodeHash &&
+    user.resetCodeExpiresAt &&
+    user.resetCodeExpiresAt > new Date() &&
+    user.resetCodeHash === hashCode(code);
+  if (!valid) throw AppError.badRequest('Código inválido ou expirado');
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      password: await bcrypt.hash(newPassword, 10),
+      resetCodeHash: null,
+      resetCodeExpiresAt: null,
+    },
+  });
+}
+
+/** Envia (ou reenvia) o código de verificação do e-mail do usuário logado. */
+export async function startEmailVerification(userId: string): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw AppError.notFound('Usuário não encontrado');
+  if (user.emailVerifiedAt) throw AppError.badRequest('E-mail já verificado');
+
+  const code = generateCode();
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      verifyCodeHash: hashCode(code),
+      verifyCodeExpiresAt: new Date(Date.now() + CODE_TTL_MS),
+    },
+  });
+  await sendEmail(
+    user.email,
+    'FinControl — confirme seu e-mail',
+    `Seu código de verificação do FinControl é: ${code} (válido por 15 minutos).`,
+  );
+}
+
+/** Confirma o e-mail com o código recebido. */
+export async function verifyEmail(userId: string, code: string): Promise<SerializedUser> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const valid =
+    user &&
+    user.verifyCodeHash &&
+    user.verifyCodeExpiresAt &&
+    user.verifyCodeExpiresAt > new Date() &&
+    user.verifyCodeHash === hashCode(code);
+  if (!valid) throw AppError.badRequest('Código inválido ou expirado');
+
+  const updated = await prisma.user.update({
+    where: { id: user.id },
+    data: { emailVerifiedAt: new Date(), verifyCodeHash: null, verifyCodeExpiresAt: null },
+  });
+  return serialize(updated);
 }

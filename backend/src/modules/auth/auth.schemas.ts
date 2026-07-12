@@ -18,6 +18,24 @@ export const updateMeSchema = z.object({
   phone: z.union([z.string().min(1).max(30), z.null()]).optional(),
 });
 
+export const deleteMeSchema = z.object({
+  password: z.string().min(1),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string().email(),
+  code: z.string().regex(/^\d{6}$/, 'Código deve ter 6 dígitos'),
+  newPassword: z.string().min(6),
+});
+
+export const verifyEmailSchema = z.object({
+  code: z.string().regex(/^\d{6}$/, 'Código deve ter 6 dígitos'),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type UpdateMeInput = z.infer<typeof updateMeSchema>;

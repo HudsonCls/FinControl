@@ -18,3 +18,21 @@ export const loginRateLimiter = rateLimit({
     },
   },
 });
+
+/**
+ * Limite para os fluxos de código (esqueci a senha / verificação): mais folgado
+ * que o de login, mas impede spam de e-mail/WhatsApp e força bruta do código
+ * de 6 dígitos. Contador próprio, independente do de login.
+ */
+export const sensitiveRateLimiter = rateLimit({
+  windowMs: env.LOGIN_RATE_LIMIT_WINDOW_MS,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: {
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Muitas tentativas. Tente novamente em alguns minutos.',
+    },
+  },
+});

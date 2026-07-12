@@ -22,6 +22,12 @@ model User {
   // Resumo automático via WhatsApp: NONE | DAILY | WEEKLY | MONTHLY
   summaryFrequency  String    @default("NONE")
   summaryLastSentAt DateTime?
+  // Fase 0 (lojas): verificação de e-mail e redefinição de senha por código.
+  emailVerifiedAt     DateTime?
+  resetCodeHash       String?
+  resetCodeExpiresAt  DateTime?
+  verifyCodeHash      String?
+  verifyCodeExpiresAt DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 

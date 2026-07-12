@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui';
 import LoginPage from '@/pages/LoginPage';
+import { TermsPage, PrivacyPage } from '@/pages/LegalPages';
 import DashboardPage from '@/pages/DashboardPage';
 import TransactionsPage from '@/pages/TransactionsPage';
 import SearchPage from '@/pages/SearchPage';
@@ -24,6 +25,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+      <Route path="/termos" element={<TermsPage />} />
+      <Route path="/privacidade" element={<PrivacyPage />} />
       <Route path="/" element={<Protected><DashboardPage /></Protected>} />
       <Route path="/transacoes" element={<Protected><TransactionsPage /></Protected>} />
       <Route path="/busca" element={<Protected><SearchPage /></Protected>} />

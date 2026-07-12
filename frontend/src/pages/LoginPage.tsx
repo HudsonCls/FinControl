@@ -1,9 +1,114 @@
 import { useState, type FormEvent } from 'react';
 import { DollarSign } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { apiError } from '@/lib/api';
-import { Button, Input, Field } from '@/components/ui';
+import { api, apiError } from '@/lib/api';
+import { Button, Input, Field, Modal } from '@/components/ui';
 import { ThemeToggle } from '@/components/ThemeToggle';
+
+function ForgotPasswordModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [step, setStep] = useState<'email' | 'code' | 'done'>('email');
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function requestCode(e: FormEvent) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await api.post('/auth/forgot', { email });
+      setStep('code');
+    } catch (err) {
+      setError(apiError(err, 'Não foi possível enviar o código'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function confirmReset(e: FormEvent) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await api.post('/auth/reset', { email, code: code.trim(), newPassword });
+      setStep('done');
+    } catch (err) {
+      setError(apiError(err, 'Código inválido ou expirado'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function close() {
+    setStep('email');
+    setEmail('');
+    setCode('');
+    setNewPassword('');
+    setError('');
+    onClose();
+  }
+
+  return (
+    <Modal open={open} onClose={close} title="Redefinir senha">
+      {step === 'email' && (
+        <form onSubmit={requestCode} className="space-y-3">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Informe seu e-mail. Enviaremos um código de 6 dígitos por e-mail e, se o seu
+            WhatsApp estiver vinculado, também por lá.
+          </p>
+          <Field label="E-mail">
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </Field>
+          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+          <Button type="submit" variant="primary" loading={loading} className="w-full">
+            Enviar código
+          </Button>
+        </form>
+      )}
+      {step === 'code' && (
+        <form onSubmit={confirmReset} className="space-y-3">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Digite o código recebido e a nova senha.
+          </p>
+          <Field label="Código de 6 dígitos">
+            <Input
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              inputMode="numeric"
+              maxLength={6}
+              required
+            />
+          </Field>
+          <Field label="Nova senha (mín. 6 caracteres)">
+            <Input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              minLength={6}
+              required
+            />
+          </Field>
+          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+          <Button type="submit" variant="primary" loading={loading} className="w-full">
+            Redefinir senha
+          </Button>
+        </form>
+      )}
+      {step === 'done' && (
+        <div className="space-y-3 text-center">
+          <p className="text-sm text-slate-700 dark:text-slate-200">
+            Senha redefinida com sucesso! Entre com a nova senha.
+          </p>
+          <Button variant="primary" onClick={close} className="w-full">
+            Voltar ao login
+          </Button>
+        </div>
+      )}
+    </Modal>
+  );
+}
 
 export default function LoginPage() {
   const { login, register } = useAuth();
@@ -14,6 +119,7 @@ export default function LoginPage() {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -85,12 +191,41 @@ export default function LoginPage() {
           </form>
 
           {mode === 'login' && (
-            <p className="mt-3 text-center text-xs text-slate-400 dark:text-slate-500">
+            <button
+              type="button"
+              onClick={() => setForgotOpen(true)}
+              className="mt-3 w-full text-center text-xs text-brand hover:underline"
+            >
+              Esqueci minha senha
+            </button>
+          )}
+          {mode === 'register' && (
+            <p className="mt-3 text-center text-[11px] text-slate-400 dark:text-slate-500">
+              Ao criar a conta você concorda com os{' '}
+              <a href="/termos" target="_blank" className="underline">Termos de Uso</a> e a{' '}
+              <a href="/privacidade" target="_blank" className="underline">
+                Política de Privacidade
+              </a>
+              .
+            </p>
+          )}
+          {mode === 'login' && (
+            <p className="mt-2 text-center text-xs text-slate-400 dark:text-slate-500">
               Demo: demo@fincontrol.dev / demo1234
             </p>
           )}
         </div>
+
+        <p className="mt-4 text-center text-[11px] text-slate-400 dark:text-slate-600">
+          <a href="/termos" target="_blank" className="hover:underline">Termos de Uso</a>
+          {' · '}
+          <a href="/privacidade" target="_blank" className="hover:underline">
+            Política de Privacidade
+          </a>
+        </p>
       </div>
+
+      <ForgotPasswordModal open={forgotOpen} onClose={() => setForgotOpen(false)} />
     </div>
   );
 }

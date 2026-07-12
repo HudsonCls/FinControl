@@ -26,6 +26,10 @@ const schema = z.object({
   LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().default(15 * 60 * 1000),
   // Hora (de Brasília) a partir da qual os resumos automáticos do dia são enviados.
   SUMMARY_HOUR: z.coerce.number().default(8),
+  // Opcional: habilita e-mails reais (reset de senha/verificação) via Resend.
+  // Sem chave, os e-mails são simulados (log) e os códigos também vão por WhatsApp.
+  RESEND_API_KEY: z.string().optional().default(''),
+  EMAIL_FROM: z.string().default('FinControl <onboarding@resend.dev>'),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -41,3 +45,5 @@ export const isTest = env.NODE_ENV === 'test';
 export const aiEnabled = Boolean(env.ANTHROPIC_API_KEY);
 /** Envio real via WhatsApp ligado quando há credenciais Twilio. */
 export const twilioEnabled = Boolean(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN);
+/** E-mails reais ligados quando há chave do Resend. */
+export const emailEnabled = Boolean(env.RESEND_API_KEY);
