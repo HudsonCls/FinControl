@@ -114,7 +114,7 @@ export default function LoginPage() {
   const { login, register } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('demo@fincontrol.dev');
+  const [email, setEmail] = useState('demo@avora.dev');
   const [password, setPassword] = useState('demo1234');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
@@ -211,7 +211,7 @@ export default function LoginPage() {
           )}
           {mode === 'login' && (
             <p className="mt-2 text-center text-xs text-slate-400 dark:text-slate-500">
-              Demo: demo@fincontrol.dev / demo1234
+              Demo: demo@avora.dev / demo1234
             </p>
           )}
         </div>

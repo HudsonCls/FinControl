@@ -32,7 +32,7 @@ export default function SearchPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `fincontrol-transacoes-${month}.csv`;
+      a.download = `avora-transacoes-${month}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();

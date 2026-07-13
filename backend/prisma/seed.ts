@@ -4,7 +4,7 @@ import { currentMonth, monthRange } from '../src/lib/dates';
 
 const prisma = new PrismaClient();
 
-const DEMO_EMAIL = 'demo@fincontrol.dev';
+const DEMO_EMAIL = 'demo@avora.dev';
 const DEMO_PASSWORD = 'demo1234';
 
 /** Data dentro do mês corrente, no dia informado (UTC). */
